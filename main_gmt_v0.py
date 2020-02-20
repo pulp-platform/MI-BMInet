@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 from eeg_reduction import eeg_reduction
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 
 
@@ -64,7 +64,7 @@ n_epochs = 100
 num_splits = 5
 
 # data settings  
-n_ds = 3 # downsamlping factor [1,2,3]
+n_ds = 1 # downsamlping factor [1,2,3]
 n_ch_vec = [38] # number of channels [19,27,38,64]
 T_vec = [2] # duration to classify
 
@@ -105,6 +105,8 @@ for num_classes in num_classes_list:
                 train_loss = np.array([])
                 valid_loss = np.array([])
                 epoch_number = 0    
+                
+
                 model = models.EEGNet(nb_classes = num_classes, Chans=n_ch, Samples=SAMPLE_SIZE, regRate=0.25,
                                 dropoutRate=0.2, kernLength=kernLength, poolLength=poolLength, numFilters=8, dropoutType='Dropout')
 
