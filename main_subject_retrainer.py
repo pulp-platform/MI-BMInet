@@ -36,13 +36,13 @@ def exclude_subjects(all_subjects=range(1,110), excluded_subjects=[88,92,100,104
 
 #################################################
 #
-# Learning Rate Sparse Scheduling 
+# Learning Rate Sparse Scheduling
 # used on Subject Specific Retraining
 #
 # 5 Global models have alredy been trained
 # now, these models are used, and further
 # (subject-specifically) retrained.
-# 
+#
 # Finally, results within, and across
 # subjects are averaged and plotted.
 #
@@ -55,7 +55,7 @@ lrates = [-3,-4,-5]
 # Set data path
 PATH = "../files/"
 # Make necessary directories for files
-results_dir=f'subject_specific'
+results_dir=f'test'
 os.makedirs(f'{results_dir}/stats', exist_ok=True)
 os.makedirs(f'{results_dir}/model', exist_ok=True)
 os.makedirs(f'{results_dir}/plots', exist_ok=True)
@@ -87,7 +87,7 @@ for num_classes in num_classes_list:
             for train_sub, test_sub in kf_subject.split(X_sub, y_sub):
                 print(f'N_Classes:{num_classes}, Model: {split_ctr} \n Subject: {subject:03d}, Split: {sub_split_ctr}')
                 model = load_model(f'global_models/model/global_class_{num_classes}_split_{split_ctr}_v1.h5')
-                first_eval = model.evaluate(X_sub[test_sub], y_sub_cat[test_sub], batch_size=16) 
+                first_eval = model.evaluate(X_sub[test_sub], y_sub_cat[test_sub], batch_size=16)
                 train_accu = np.array([])
                 valid_accu = np.array([])
                 train_loss = np.array([])
@@ -102,7 +102,7 @@ for num_classes in num_classes_list:
                     adam_alpha = Adam(lr=(10**lrate))
                     model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
                     # creating a history object
-                    history = model.fit(X_sub[train_sub], y_sub_cat[train_sub], 
+                    history = model.fit(X_sub[train_sub], y_sub_cat[train_sub],
                             validation_data=(X_sub[test_sub], y_sub_cat[test_sub]),
                             batch_size = 16, epochs = epochs[j], verbose = 2)
                     train_accu = np.append(train_accu, history.history['acc'])
@@ -115,7 +115,7 @@ for num_classes in num_classes_list:
                 valid_accu_str = f'{results_dir}/stats/valid_accu_v1_class_{num_classes}_subject_{sub_str}_fold_{sub_split_ctr}.csv'
                 train_loss_str = f'{results_dir}/stats/train_loss_v1_class_{num_classes}_subject_{sub_str}_fold_{sub_split_ctr}.csv'
                 valid_loss_str = f'{results_dir}/stats/valid_loss_v1_class_{num_classes}_subject_{sub_str}_fold_{sub_split_ctr}.csv'
-                     
+
                 np.savetxt(train_accu_str, train_accu)
                 np.savetxt(valid_accu_str, valid_accu)
                 np.savetxt(train_loss_str, train_loss)
@@ -140,12 +140,12 @@ for num_classes in num_classes_list:
             valid_accu_step = np.loadtxt(f'{results_dir}/stats/valid_accu_v1_class_{num_classes}_subject_{sub_str}_fold_{sub_split_ctr}.csv')
             train_loss_step = np.loadtxt(f'{results_dir}/stats/train_loss_v1_class_{num_classes}_subject_{sub_str}_fold_{sub_split_ctr}.csv')
             valid_loss_step = np.loadtxt(f'{results_dir}/stats/valid_loss_v1_class_{num_classes}_subject_{sub_str}_fold_{sub_split_ctr}.csv')
-       
+
             train_accu += train_accu_step
             valid_accu += valid_accu_step
             train_loss += train_loss_step
             valid_loss += valid_loss_step
-        
+
         train_accu = train_accu/4
         valid_accu = valid_accu/4
         train_loss = train_loss/4
@@ -155,7 +155,7 @@ for num_classes in num_classes_list:
         np.savetxt(f'{results_dir}/stats/{num_classes}_class/valid_accu_v1_class_{num_classes}_subject_{sub_str}_avg.csv', valid_accu)
         np.savetxt(f'{results_dir}/stats/{num_classes}_class/train_loss_v1_class_{num_classes}_subject_{sub_str}_avg.csv', train_loss)
         np.savetxt(f'{results_dir}/stats/{num_classes}_class/valid_loss_v1_class_{num_classes}_subject_{sub_str}_avg.csv', valid_loss)
-        # Plot Accuracy 
+        # Plot Accuracy
         plt.plot(train_accu, label='Training')
         plt.plot(valid_accu, label='Validation')
         plt.title(f'S:{sub_str} C:{num_classes} Acc.: LR: 2-3-5, DR=0.2')
@@ -184,12 +184,12 @@ for num_classes in num_classes_list:
         valid_accu_step = np.loadtxt(f'{results_dir}/stats/{num_classes}_class/valid_accu_v1_class_{num_classes}_subject_{sub_str}_avg.csv')
         train_loss_step = np.loadtxt(f'{results_dir}/stats/{num_classes}_class/train_loss_v1_class_{num_classes}_subject_{sub_str}_avg.csv')
         valid_loss_step = np.loadtxt(f'{results_dir}/stats/{num_classes}_class/valid_loss_v1_class_{num_classes}_subject_{sub_str}_avg.csv')
-   
+
         train_accu += train_accu_step
         valid_accu += valid_accu_step
         train_loss += train_loss_step
         valid_loss += valid_loss_step
-    
+
     train_accu = train_accu/len(subjects)
     valid_accu = valid_accu/len(subjects)
     train_loss = train_loss/len(subjects)
@@ -200,7 +200,7 @@ for num_classes in num_classes_list:
     np.savetxt(f'{results_dir}/stats/avg/train_loss_v1_class_{num_classes}_ss_retrained_avg.csv', train_loss)
     np.savetxt(f'{results_dir}/stats/avg/valid_loss_v1_class_{num_classes}_ss_retrained_avg.csv', valid_loss)
 
-    # Plot Accuracy 
+    # Plot Accuracy
     plt.plot(train_accu, label='Training')
     plt.plot(valid_accu, label='Validation')
     plt.title(f'SS Retraining C:{num_classes} Acc.: LR: 2-3-5, DR=0.2')
@@ -237,12 +237,12 @@ for num_classes in num_classes_list:
             valid_accu_step = np.loadtxt(f'{results_dir}/stats/{num_classes}_class/valid_accu_v1_class_{num_classes}_subject_{sub_str}_avg.csv')
             train_loss_step = np.loadtxt(f'{results_dir}/stats/{num_classes}_class/train_loss_v1_class_{num_classes}_subject_{sub_str}_avg.csv')
             valid_loss_step = np.loadtxt(f'{results_dir}/stats/{num_classes}_class/valid_loss_v1_class_{num_classes}_subject_{sub_str}_avg.csv')
-       
+
             train_accu += train_accu_step
             valid_accu += valid_accu_step
             train_loss += train_loss_step
             valid_loss += valid_loss_step
-        
+
         train_accu = train_accu/len(test_global)
         valid_accu = valid_accu/len(test_global)
         train_loss = train_loss/len(test_global)
@@ -253,7 +253,7 @@ for num_classes in num_classes_list:
         np.savetxt(f'{results_dir}/stats/avg/train_loss_v1_class_{num_classes}_ss_retrained_model_{split_ctr}_avg.csv', train_loss)
         np.savetxt(f'{results_dir}/stats/avg/valid_loss_v1_class_{num_classes}_ss_retrained_model_{split_ctr}_avg.csv', valid_loss)
 
-        # Plot Accuracy 
+        # Plot Accuracy
         plt.plot(train_accu, label='Training')
         plt.plot(valid_accu, label='Validation')
         plt.title(f'SS Retraining C:{num_classes} M:{split_ctr} Acc.: LR: 2-3-5, DR=0.2')

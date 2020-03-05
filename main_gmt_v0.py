@@ -24,6 +24,7 @@ from keras import backend as K
 import models as models
 from sklearn.model_selection import KFold
 import matplotlib.pyplot as plt
+import pdb
 from eeg_reduction import eeg_reduction
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
@@ -50,7 +51,7 @@ lrate = LearningRateScheduler(step_decay)
 PATH = "/usr/scratch/xavier/herschmi/EEG_data/physionet/"
 
 current_time = datetime.now()
-results_dir=f'../results/M4M7_models'
+results_dir=f'results'
 #os.makedirs(results_dir, exist_ok=True)
 os.makedirs(f'{results_dir}/stats', exist_ok=True)
 os.makedirs(f'{results_dir}/model', exist_ok=True)
@@ -63,7 +64,7 @@ num_splits = 5
 
 # data settings
 n_ds = 2 # downsamlping factor [1,2,3]
-n_ch_vec = [38] # number of channels [8, 16, 19, 24, 38]
+n_ch_vec = [64] # number of channels [8, 16, 19, 24, 38, 64]
 T_vec = [3] # duration to classify
 
 # model settings
@@ -108,7 +109,7 @@ for num_classes in num_classes_list:
                 model = models.EEGNet(nb_classes = num_classes, Chans=n_ch, Samples=SAMPLE_SIZE, regRate=0.25,
                                 dropoutRate=0.2, kernLength=kernLength, poolLength=poolLength, numFilters=8, dropoutType='Dropout')
 
-
+                # pdb.set_trace()
                 print(model.summary())
 
                 print(f'Split = {split_ctr}')
