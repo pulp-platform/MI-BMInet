@@ -109,7 +109,7 @@ for num_classes in num_classes_list:
                 model = models.EEGNet(nb_classes = num_classes, Chans=n_ch, Samples=SAMPLE_SIZE, regRate=0.25,
                                 dropoutRate=0.2, kernLength=kernLength, poolLength=poolLength, numFilters=8, dropoutType='Dropout')
 
-                # pdb.set_trace()
+                pdb.set_trace()
                 print(model.summary())
 
                 print(f'Split = {split_ctr}')

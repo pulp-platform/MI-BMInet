@@ -49,13 +49,13 @@ def exclude_subjects(all_subjects=range(1,110), excluded_subjects=[88,92,100,104
 #################################################
 
 # Number of epochs to use with 10^[-3,-4,-5] Learning Rate
-epochs = [2,3,5]
-lrates = [-3,-4,-5]
+epochs = [5] #[2,3,5]
+lrates = [-5] #[-3,-4,-5]
 
 # Set data path
-PATH = "../files/"
+PATH = "/usr/scratch/badile01/sem20f12/files"
 # Make necessary directories for files
-results_dir=f'test'
+results_dir=f'SS-TL'
 os.makedirs(f'{results_dir}/stats', exist_ok=True)
 os.makedirs(f'{results_dir}/model', exist_ok=True)
 os.makedirs(f'{results_dir}/plots', exist_ok=True)
@@ -63,7 +63,7 @@ os.makedirs(f'{results_dir}/stats/avg', exist_ok=True)
 os.makedirs(f'{results_dir}/plots/avg', exist_ok=True)
 
 # Specify number of classses for input data
-num_classes_list = [2,3,4]
+num_classes_list = [4]
 # Exclude subjects whose data we do not use
 subjects = exclude_subjects()
 
@@ -87,6 +87,7 @@ for num_classes in num_classes_list:
             for train_sub, test_sub in kf_subject.split(X_sub, y_sub):
                 print(f'N_Classes:{num_classes}, Model: {split_ctr} \n Subject: {subject:03d}, Split: {sub_split_ctr}')
                 model = load_model(f'global_models/model/global_class_{num_classes}_split_{split_ctr}_v1.h5')
+                # model = load_model(f'results/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}_v1.h5')
                 first_eval = model.evaluate(X_sub[test_sub], y_sub_cat[test_sub], batch_size=16)
                 train_accu = np.array([])
                 valid_accu = np.array([])
