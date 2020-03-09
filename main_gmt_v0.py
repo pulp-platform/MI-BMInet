@@ -63,7 +63,7 @@ n_epochs = 100
 num_splits = 5
 
 # data settings
-n_ds = 2 # downsamlping factor [1,2,3]
+n_ds = 1 # downsamlping factor [1,2,3]
 n_ch_vec = [64] # number of channels [8, 16, 19, 24, 38, 64]
 T_vec = [3] # duration to classify
 
@@ -79,7 +79,6 @@ for num_classes in num_classes_list:
             # Load data
             #X_Train, y_Train = get.get_data(PATH, n_classes=num_classes)
 
-
             #np.savez(PATH+f'{num_classes}class',X_Train = X_Train, y_Train = y_Train)
             npzfile = np.load(PATH+f'{num_classes}class.npz')
             X_Train, y_Train = npzfile['X_Train'], npzfile['y_Train']
@@ -94,7 +93,6 @@ for num_classes in num_classes_list:
             y_Train_cat = np_utils.to_categorical(y_Train)
 
             # using 5 folds
-
             kf = KFold(n_splits = num_splits)
 
             split_ctr = 0
@@ -109,7 +107,7 @@ for num_classes in num_classes_list:
                 model = models.EEGNet(nb_classes = num_classes, Chans=n_ch, Samples=SAMPLE_SIZE, regRate=0.25,
                                 dropoutRate=0.2, kernLength=kernLength, poolLength=poolLength, numFilters=8, dropoutType='Dropout')
 
-                pdb.set_trace()
+                # pdb.set_trace()
                 print(model.summary())
 
                 print(f'Split = {split_ctr}')

@@ -6,6 +6,7 @@ __email__ = "tbatuhan@ethz.ch, bukaya@ethz.ch"
 import numpy as np
 import os
 from datetime import datetime
+import pdb
 # pyEDFlib is a python library to read/write EDF+/BDF+ files based on EDFlib.
 import pyedflib
 # our functions to test and load data
@@ -28,6 +29,12 @@ import matplotlib.pyplot as plt
 # tools for plotting confusion matrices
 #from matplotlib import pyplot as plt
 #from conf_matrix import plot_confusion_matrix
+# for csp
+from channel_selection_csp import CSP_Model, channel_selection_csp
+
+# Select GPU
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 # Remove excluded subjects from subjects list
 def exclude_subjects(all_subjects=range(1,110), excluded_subjects=[88,92,100,104]):
@@ -49,8 +56,8 @@ def exclude_subjects(all_subjects=range(1,110), excluded_subjects=[88,92,100,104
 #################################################
 
 # Number of epochs to use with 10^[-3,-4,-5] Learning Rate
-epochs = [5] #[2,3,5]
-lrates = [-5] #[-3,-4,-5]
+epochs = [2,3,5]
+lrates = [-3,-4,-5]
 
 # Set data path
 PATH = "/usr/scratch/badile01/sem20f12/files"
@@ -66,6 +73,8 @@ os.makedirs(f'{results_dir}/plots/avg', exist_ok=True)
 num_classes_list = [4]
 # Exclude subjects whose data we do not use
 subjects = exclude_subjects()
+# For CSP
+csp_model = CSP_Model()
 
 for num_classes in num_classes_list:
     # using 5 folds
@@ -78,16 +87,39 @@ for num_classes in num_classes_list:
         for sub_idx in test_global:
             subject = subjects[sub_idx]
             X_sub, y_sub = get.get_data(PATH, n_classes=num_classes, subjects_list=[subject])
+            print(X_sub.shape)
+
+            # select channels for specific subject
+            selected_channels = channel_selection_csp(X_sub, y_sub, csp_model.NO_csp, csp_model.filter_bank, csp_model.time_windows, csp_model.NO_classes, csp_model.NO_channels, csp_model.NO_selected_channels)
+            X_sub = X_sub[:,selected_channels,:]
+
             X_sub = np.expand_dims(X_sub, axis=1)
             y_sub_cat = np_utils.to_categorical(y_sub)
             SAMPLE_SIZE = np.shape(X_sub)[3]
             kf_subject = StratifiedKFold(n_splits=4, shuffle=True, random_state=42)
             sub_split_ctr = 0
 
+            print(X_sub.shape)
+
             for train_sub, test_sub in kf_subject.split(X_sub, y_sub):
                 print(f'N_Classes:{num_classes}, Model: {split_ctr} \n Subject: {subject:03d}, Split: {sub_split_ctr}')
-                model = load_model(f'global_models/model/global_class_{num_classes}_split_{split_ctr}_v1.h5')
-                # model = load_model(f'results/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}_v1.h5')
+                model_global = load_model(f'results/model/global_class_{num_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
+                # model_global = load_model(f'global_models/model/global_class_{num_classes}_split_{split_ctr}_v1.h5')
+                print(model_global.summary())
+                model = models.EEGNet(nb_classes = num_classes, Chans=8, Samples=480, regRate=0.25,
+                                dropoutRate=0.2, kernLength=128, poolLength=8, numFilters=8, dropoutType='Dropout')
+                print(model.summary())
+
+                adam_alpha = Adam(lr=(0.0001))
+                model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
+                # pdb.set_trace()
+                model.layers[1].set_weights(model_global.layers[1].get_weights())
+                model.layers[2].set_weights(model_global.layers[2].get_weights())
+                model.layers[3].set_weights([model_global.layers[3].get_weights()[0][selected_channels,]])
+                model.layers[4].set_weights(model_global.layers[4].get_weights())
+
+                print(X_sub[test_sub].shape)
+                # pdb.set_trace()
                 first_eval = model.evaluate(X_sub[test_sub], y_sub_cat[test_sub], batch_size=16)
                 train_accu = np.array([])
                 valid_accu = np.array([])
@@ -174,6 +206,7 @@ for num_classes in num_classes_list:
         plt.legend()
         plt.savefig(f'{results_dir}/plots/{num_classes}_class/loss_avg_{num_classes}_c_{sub_str}.pdf')
         plt.clf()
+
 for num_classes in num_classes_list:
     train_accu = np.zeros(n_epochs+1)
     valid_accu = np.zeros(n_epochs+1)
@@ -195,6 +228,8 @@ for num_classes in num_classes_list:
     valid_accu = valid_accu/len(subjects)
     train_loss = train_loss/len(subjects)
     valid_loss = valid_loss/len(subjects)
+
+    print("SS Validation Accuracy {:.4f}".format(valid_accu[-1]))
 
     np.savetxt(f'{results_dir}/stats/avg/train_accu_v1_class_{num_classes}_ss_retrained_avg.csv', train_accu)
     np.savetxt(f'{results_dir}/stats/avg/valid_accu_v1_class_{num_classes}_ss_retrained_avg.csv', valid_accu)
