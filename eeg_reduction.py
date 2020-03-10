@@ -29,19 +29,19 @@ def eeg_reduction(x, n_ds = 1, n_ch = 64, T = 3, fs = 160):
 	-------
 	'''
 
-	# original selected channels
-	if n_ch == 64:
-		channels = np.arange(0,n_ch)
-	elif n_ch == 38:
-		channels = np.array([0,2,4,6,8,10,12,14,16,18,20,21,22,23,24,26,28,29,31,33,35,37,40,41,42,43,46,48,50,52,54,55,57,59,60,61,62,63])
-	elif n_ch == 27:
-		channels = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,38,39,40,41,44,45])
-	elif n_ch == 19:
-		channels = np.array([8,10,12,21,23,29,31,33,35,37,40,41,46,48,50,52,54,60,62])
-	elif n_ch == 16:
-		channels = np.array([2,3,4,5,6,9,10,11,12,13,16,17,18,19,20,34]) #trial
-	elif n_ch == 8:
-		channels = np.array([8,10,12,25,27,48,52,57])
+	# # original selected channels
+	# if n_ch == 64:
+	# 	channels = np.arange(0,n_ch)
+	# elif n_ch == 38:
+	# 	channels = np.array([0,2,4,6,8,10,12,14,16,18,20,21,22,23,24,26,28,29,31,33,35,37,40,41,42,43,46,48,50,52,54,55,57,59,60,61,62,63])
+	# elif n_ch == 27:
+	# 	channels = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,38,39,40,41,44,45])
+	# elif n_ch == 19:
+	# 	channels = np.array([8,10,12,21,23,29,31,33,35,37,40,41,46,48,50,52,54,60,62])
+	# elif n_ch == 16:
+	# 	channels = np.array([2,3,4,5,6,9,10,11,12,13,16,17,18,19,20,34]) #trial
+	# elif n_ch == 8:
+	# 	channels = np.array([8,10,12,25,27,48,52,57])
 
 	''' FOUR CLASS '''
 
@@ -87,9 +87,27 @@ def eeg_reduction(x, n_ds = 1, n_ch = 64, T = 3, fs = 160):
 	# elif n_ch == 8:
 	# 	channels = np.array([7,18,20,32,33,35,49,50])
 
+	# # EEGNet weights selected
+	# if n_ch == 64:
+	# 	channels = np.arange(0,n_ch)
+	# elif n_ch == 38:
+	# 	channels = np.array([2,3,6,7,8,9,10,11,12,15,16,17,19,20,22,28,29,30,34,35,36,37,38,40,42,43,44,48,50,51,52,54,55,56,57,59,60,63])
+	# elif n_ch == 24:
+	# 	channels = np.array([2,3,6,9,10,11,12,15,16,17,19,29,30,37,38,42,43,44,48,50,55,56,57,63])
+	# elif n_ch == 19:
+	# 	channels = np.array([2,3,6,9,10,11,12,16,19,29,37,38,42,43,44,48,50,57,63])
+	# elif n_ch == 16:
+	# 	channels = np.array([3,9,10,11,12,19,29,37,38,42,43,44,48,50,57,63])
+	# elif n_ch == 8:
+	# 	channels = np.array([3,9,10,29,37,38,43,63])
+
 	# # IV-2a Competition - 22 Channel Selection
 	# if n_ch == 22:
 	# 	channels = np.array([1,2,3,4,5,7,8,9,10,11,12,13,15,16,17,18,19,33,49,50,51,57])
+
+	# SS-TL subject 90
+	if n_ch == 8:
+		channels = np.array([2,3,9,10,37,43,48,63])
 
 	''' TWO CLASS '''
 	# # CSP selected channels

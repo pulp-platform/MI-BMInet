@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 #from matplotlib import pyplot as plt
 #from conf_matrix import plot_confusion_matrix
 # for csp
-from channel_selection_csp import CSP_Model, channel_selection_csp
+from channel_selection import CS_Model, channel_selection_csp, channel_selection_eegweights
 
 # Select GPU
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
@@ -73,8 +73,10 @@ os.makedirs(f'{results_dir}/plots/avg', exist_ok=True)
 num_classes_list = [4]
 # Exclude subjects whose data we do not use
 subjects = exclude_subjects()
-# For CSP
-csp_model = CSP_Model()
+# For channel selection
+cs_model = CS_Model()
+cs_csp = False
+cs_eeg = True
 
 for num_classes in num_classes_list:
     # using 5 folds
@@ -90,8 +92,9 @@ for num_classes in num_classes_list:
             print(X_sub.shape)
 
             # select channels for specific subject
-            selected_channels = channel_selection_csp(X_sub, y_sub, csp_model.NO_csp, csp_model.filter_bank, csp_model.time_windows, csp_model.NO_classes, csp_model.NO_channels, csp_model.NO_selected_channels)
-            X_sub = X_sub[:,selected_channels,:]
+            if cs_csp:
+                selected_channels = channel_selection_csp(X_sub, y_sub, cs_model.NO_csp, cs_model.filter_bank, cs_model.time_windows, cs_model.NO_classes, cs_model.NO_channels, cs_model.NO_selected_channels, cs_model.channel_selection_method)
+                X_sub = X_sub[:,selected_channels,:]
 
             X_sub = np.expand_dims(X_sub, axis=1)
             y_sub_cat = np_utils.to_categorical(y_sub)
@@ -99,24 +102,38 @@ for num_classes in num_classes_list:
             kf_subject = StratifiedKFold(n_splits=4, shuffle=True, random_state=42)
             sub_split_ctr = 0
 
+            if cs_eeg:
+                sub_str = '{0:03d}'.format(subject)
+                w_ss = 0
+                for i in range(0, 4):
+                    model_ss = load_model(f'SS-TL/64ch/model/subject{sub_str}_fold{i}.h5')
+                    w_ss += model_ss.layers[3].get_weights()[0] ** 2
+
+                selected_channels = channel_selection_eegweights(w_ss, cs_model.NO_channels, cs_model.NO_selected_channels)
+                X_sub = X_sub[:,:,selected_channels,:]
+
+
             print(X_sub.shape)
 
             for train_sub, test_sub in kf_subject.split(X_sub, y_sub):
                 print(f'N_Classes:{num_classes}, Model: {split_ctr} \n Subject: {subject:03d}, Split: {sub_split_ctr}')
-                model_global = load_model(f'results/model/global_class_{num_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
-                # model_global = load_model(f'global_models/model/global_class_{num_classes}_split_{split_ctr}_v1.h5')
-                print(model_global.summary())
-                model = models.EEGNet(nb_classes = num_classes, Chans=8, Samples=480, regRate=0.25,
-                                dropoutRate=0.2, kernLength=128, poolLength=8, numFilters=8, dropoutType='Dropout')
-                print(model.summary())
+                if not cs_csp and not cs_eeg:
+                    model = load_model(f'Global/model/global_class_{num_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
 
-                adam_alpha = Adam(lr=(0.0001))
-                model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
-                # pdb.set_trace()
-                model.layers[1].set_weights(model_global.layers[1].get_weights())
-                model.layers[2].set_weights(model_global.layers[2].get_weights())
-                model.layers[3].set_weights([model_global.layers[3].get_weights()[0][selected_channels,]])
-                model.layers[4].set_weights(model_global.layers[4].get_weights())
+                if cs_csp or cs_eeg:
+                    model_global = load_model(f'Global/model/global_class_{num_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
+                    print(model_global.summary())
+                    model = models.EEGNet(nb_classes = cs_model.NO_classes, Chans=cs_model.NO_selected_channels, Samples=480, regRate=0.25,
+                                    dropoutRate=0.2, kernLength=128, poolLength=8, numFilters=8, dropoutType='Dropout')
+                    print(model.summary())
+
+                    adam_alpha = Adam(lr=(0.0001))
+                    model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
+                    # pdb.set_trace()
+                    model.layers[1].set_weights(model_global.layers[1].get_weights())
+                    model.layers[2].set_weights(model_global.layers[2].get_weights())
+                    model.layers[3].set_weights([model_global.layers[3].get_weights()[0][selected_channels,:]])
+                    model.layers[4].set_weights(model_global.layers[4].get_weights())
 
                 print(X_sub[test_sub].shape)
                 # pdb.set_trace()
@@ -153,6 +170,10 @@ for num_classes in num_classes_list:
                 np.savetxt(valid_accu_str, valid_accu)
                 np.savetxt(train_loss_str, train_loss)
                 np.savetxt(valid_loss_str, valid_loss)
+
+                #Save model
+                #print('Saving model...')
+                # model.save(f'{results_dir}/model/subject{sub_str}_fold{sub_split_ctr}.h5')
 
                 K.clear_session()
                 sub_split_ctr = sub_split_ctr + 1

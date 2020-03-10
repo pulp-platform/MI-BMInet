@@ -28,7 +28,7 @@ import pdb
 from eeg_reduction import eeg_reduction
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 #################################################
 #
@@ -51,7 +51,7 @@ lrate = LearningRateScheduler(step_decay)
 PATH = "/usr/scratch/xavier/herschmi/EEG_data/physionet/"
 
 current_time = datetime.now()
-results_dir=f'results'
+results_dir=f'Global'
 #os.makedirs(results_dir, exist_ok=True)
 os.makedirs(f'{results_dir}/stats', exist_ok=True)
 os.makedirs(f'{results_dir}/model', exist_ok=True)
@@ -63,8 +63,8 @@ n_epochs = 100
 num_splits = 5
 
 # data settings
-n_ds = 1 # downsamlping factor [1,2,3]
-n_ch_vec = [64] # number of channels [8, 16, 19, 24, 38, 64]
+n_ds = 2 # downsamlping factor [1,2,3]
+n_ch_vec = [8] # number of channels [8, 16, 19, 24, 38, 64]
 T_vec = [3] # duration to classify
 
 # model settings
