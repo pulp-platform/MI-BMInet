@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 from keras.models import load_model
 
@@ -5,6 +7,8 @@ from channel_selection import CS_Model, channel_selection_eegweights
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
+''' Channel selection for global and subject specific using EEGNet weights'''
 
 cs_model = CS_Model()
 ss_tl = True
@@ -14,7 +18,7 @@ def exclude_subjects(all_subjects=range(1,110), excluded_subjects=[88,92,100,104
     return subjects
 
 subjects = exclude_subjects()
-sub_idx = 89
+sub_idx = 94
 
 if ss_tl:
     sub_str = '{0:03d}'.format(subjects[sub_idx])

@@ -87,27 +87,34 @@ def eeg_reduction(x, n_ds = 1, n_ch = 64, T = 3, fs = 160):
 	# elif n_ch == 8:
 	# 	channels = np.array([7,18,20,32,33,35,49,50])
 
-	# # EEGNet weights selected
-	# if n_ch == 64:
-	# 	channels = np.arange(0,n_ch)
-	# elif n_ch == 38:
-	# 	channels = np.array([2,3,6,7,8,9,10,11,12,15,16,17,19,20,22,28,29,30,34,35,36,37,38,40,42,43,44,48,50,51,52,54,55,56,57,59,60,63])
-	# elif n_ch == 24:
-	# 	channels = np.array([2,3,6,9,10,11,12,15,16,17,19,29,30,37,38,42,43,44,48,50,55,56,57,63])
-	# elif n_ch == 19:
-	# 	channels = np.array([2,3,6,9,10,11,12,16,19,29,37,38,42,43,44,48,50,57,63])
-	# elif n_ch == 16:
-	# 	channels = np.array([3,9,10,11,12,19,29,37,38,42,43,44,48,50,57,63])
-	# elif n_ch == 8:
-	# 	channels = np.array([3,9,10,29,37,38,43,63])
+	# EEGNet weights selected
+	if n_ch == 64:
+		channels = np.arange(0,n_ch)
+	elif n_ch == 38:
+		channels = np.array([2,3,6,7,8,9,10,11,12,15,16,17,19,20,22,28,29,30,34,35,36,37,38,40,42,43,44,48,50,51,52,54,55,56,57,59,60,63])
+	elif n_ch == 24:
+		channels = np.array([2,3,6,9,10,11,12,15,16,17,19,29,30,37,38,42,43,44,48,50,55,56,57,63])
+	elif n_ch == 19:
+		channels = np.array([2,3,6,9,10,11,12,16,19,29,37,38,42,43,44,48,50,57,63])
+	elif n_ch == 16:
+		channels = np.array([3,9,10,11,12,19,29,37,38,42,43,44,48,50,57,63])
+	elif n_ch == 8:
+		channels = np.array([3,9,10,29,37,38,43,63])
 
 	# # IV-2a Competition - 22 Channel Selection
 	# if n_ch == 22:
 	# 	channels = np.array([1,2,3,4,5,7,8,9,10,11,12,13,15,16,17,18,19,33,49,50,51,57])
 
-	# SS-TL subject 90
-	if n_ch == 8:
-		channels = np.array([2,3,9,10,37,43,48,63])
+	# # EEGNet Weights SS-TL subject 90-94
+	# if n_ch == 8:
+	# 	channels = np.array([2,3,9,10,37,43,48,63])
+
+	# # CSP Weights SS-TL subject 90-94
+	# [10 22 23 29 35 47 57 58]
+	# [ 3  9 10 35 36 38 40 41]
+	# [31 32 33 34 35 36 55 56]
+	# [ 4 31 32 33 34 35 55 56]
+	# [10 18 25 29 30 31 34 35]
 
 	''' TWO CLASS '''
 	# # CSP selected channels

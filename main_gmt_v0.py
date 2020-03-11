@@ -63,7 +63,7 @@ n_epochs = 100
 num_splits = 5
 
 # data settings
-n_ds = 2 # downsamlping factor [1,2,3]
+n_ds = 2 # downsampling factor [1,2,3]
 n_ch_vec = [8] # number of channels [8, 16, 19, 24, 38, 64]
 T_vec = [3] # duration to classify
 

@@ -37,7 +37,7 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 # Remove excluded subjects from subjects list
-def exclude_subjects(all_subjects=range(1,110), excluded_subjects=[88,92,100,104]):
+def exclude_subjects(all_subjects=range(90,96), excluded_subjects=[88,92,100,104]):
     subjects = [x for x in all_subjects if (x not in excluded_subjects)]
     return subjects
 
@@ -76,7 +76,7 @@ subjects = exclude_subjects()
 # For channel selection
 cs_model = CS_Model()
 cs_csp = False
-cs_eeg = True
+cs_eeg = False
 
 for num_classes in num_classes_list:
     # using 5 folds
@@ -91,7 +91,7 @@ for num_classes in num_classes_list:
             X_sub, y_sub = get.get_data(PATH, n_classes=num_classes, subjects_list=[subject])
             print(X_sub.shape)
 
-            # select channels for specific subject
+            # csp select channels for specific subject
             if cs_csp:
                 selected_channels = channel_selection_csp(X_sub, y_sub, cs_model.NO_csp, cs_model.filter_bank, cs_model.time_windows, cs_model.NO_classes, cs_model.NO_channels, cs_model.NO_selected_channels, cs_model.channel_selection_method)
                 X_sub = X_sub[:,selected_channels,:]
@@ -102,6 +102,7 @@ for num_classes in num_classes_list:
             kf_subject = StratifiedKFold(n_splits=4, shuffle=True, random_state=42)
             sub_split_ctr = 0
 
+            # eegnet weight select channels for specific subject
             if cs_eeg:
                 sub_str = '{0:03d}'.format(subject)
                 w_ss = 0
@@ -112,15 +113,18 @@ for num_classes in num_classes_list:
                 selected_channels = channel_selection_eegweights(w_ss, cs_model.NO_channels, cs_model.NO_selected_channels)
                 X_sub = X_sub[:,:,selected_channels,:]
 
+            selected_channels = [2,3,9,10,37,43,48,63]
+            X_sub = X_sub[:,:,selected_channels,:]
 
             print(X_sub.shape)
 
             for train_sub, test_sub in kf_subject.split(X_sub, y_sub):
                 print(f'N_Classes:{num_classes}, Model: {split_ctr} \n Subject: {subject:03d}, Split: {sub_split_ctr}')
+                # model = load_model(f'Global/model/global_class_{num_classes}_ds1_nch8_T3_split_{split_ctr}_v1.h5') # SS-TL from global model
+
                 if not cs_csp and not cs_eeg:
                     model = load_model(f'Global/model/global_class_{num_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
-
-                if cs_csp or cs_eeg:
+                else:
                     model_global = load_model(f'Global/model/global_class_{num_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
                     print(model_global.summary())
                     model = models.EEGNet(nb_classes = cs_model.NO_classes, Chans=cs_model.NO_selected_channels, Samples=480, regRate=0.25,
@@ -129,7 +133,7 @@ for num_classes in num_classes_list:
 
                     adam_alpha = Adam(lr=(0.0001))
                     model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
-                    # pdb.set_trace()
+                    pdb.set_trace()
                     model.layers[1].set_weights(model_global.layers[1].get_weights())
                     model.layers[2].set_weights(model_global.layers[2].get_weights())
                     model.layers[3].set_weights([model_global.layers[3].get_weights()[0][selected_channels,:]])
