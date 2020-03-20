@@ -18,7 +18,7 @@ def exclude_subjects(all_subjects=range(1,110), excluded_subjects=[88,92,100,104
     return subjects
 
 subjects = exclude_subjects()
-sub_idx = 94
+sub_idx = 96
 
 if ss_tl:
     sub_str = '{0:03d}'.format(subjects[sub_idx])

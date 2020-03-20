@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import os
 import numpy as np
+from keras.models import load_model
 
 from filters import load_filterbank
 from csp import generate_projection
@@ -15,7 +17,7 @@ class CS_Model:
 
 		self.fs = 160. # sampling frequency
 		self.NO_channels = 64 # number of EEG channels
-		self.NO_selected_channels = 8 # number of selected channels
+		self.NO_selected_channels = 16 # number of selected channels
 		self.NO_subjects = 105 # number of subjects
 		self.NO_csp = 12 # Total number of CSP features per band and timewindow
 		self.NO_classes = 4
@@ -89,7 +91,7 @@ def channel_selection_csprank(w, NO_channels, NO_selected_channels, NO_csp):
     '''
 
     sort_temp = np.zeros((NO_channels, 2)) # creating an empty array of dimension NO_channels x 2 for channel number and importance
-    w_sorted = np.zeros((NO_channels, NO_csp)) # creating an empty array of dimension NO_channels x NO_csp for channel selection
+    w_sorted = np.zeros((NO_channels, NO_csp)) # creating an empty array of dimension NO_channels x NO_csp for channel selection, contains channels ranked on energy for each filter descending
 
     # sorts the absolute value of the filter coefficients in each filter respectively
     filter_index = 0
@@ -106,15 +108,15 @@ def channel_selection_csprank(w, NO_channels, NO_selected_channels, NO_csp):
 
     # takes the electrode with the next largest coefficient in turn from the 12 spatial filters
     selected_channels = np.ones(NO_selected_channels) * 404
-    selected_index = 0
-    filter_index = 0
-    w_channel_index = np.zeros(NO_csp)
+    selected_index = 0 # index of filter currently being selected
+    filter_index = 0 # index of filter being selected from
+    w_channel_index = np.zeros(NO_csp) # array to keep track of index in specific filter
     while selected_index < NO_selected_channels:
         if filter_index == NO_csp:
             filter_index = 0
-        while w_sorted[int(w_channel_index[filter_index])][filter_index] in selected_channels:
+        while w_sorted[int(w_channel_index[filter_index])][filter_index] in selected_channels: # if the channel is already selected, move to next highest channel
             w_channel_index[filter_index] += 1
-        selected_channels[selected_index] = w_sorted[int(w_channel_index[filter_index])][filter_index]
+        selected_channels[selected_index] = w_sorted[int(w_channel_index[filter_index])][filter_index] # selects highest ranked channel from current filter
         selected_index += 1
         filter_index += 1
 
@@ -162,3 +164,24 @@ def channel_selection_eegweights(w, NO_channels, NO_selected_channels):
 		selected_channels = w_squared_sum_sorted[0:NO_channels, 0]
 
 	return np.sort(selected_channels).astype(int)
+
+def channel_selection_eegweights_fromglobal(NO_channels, NO_selected_channels, NO_classes):
+	w = 0
+	for split_ctr in range(0, 5):
+		model_global = load_model(f'Global/model/global_class_{NO_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
+		w += model_global.layers[3].get_weights()[0] ** 2 # using values from all splits
+
+	selected_channels = channel_selection_eegweights(w, NO_channels, NO_selected_channels)
+	print(selected_channels)
+	return selected_channels
+
+def channel_selection_eegweights_fromss(subject, NO_channels, NO_selected_channels):
+	sub_str = '{0:03d}'.format(subject)
+	w_ss = 0
+	for i in range(0, 4):
+	    model_ss = load_model(f'SS-TL/64ch/model/subject{sub_str}_fold{i}.h5')
+	    w_ss += model_ss.layers[3].get_weights()[0] ** 2 # using values from all splits
+
+	selected_channels = channel_selection_eegweights(w_ss, NO_channels, NO_selected_channels)
+	print(selected_channels)
+	return selected_channels

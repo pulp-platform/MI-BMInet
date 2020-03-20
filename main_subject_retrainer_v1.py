@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+# 1. 64-channels global model trained,
+#    select N channels based on EEGNet weights,
+#    *train from scratch N channels global model,
+#    *final epochs SS
+
 __author__ = "Batuhan Tomekce and Burak Alp Kaya"
 __email__ = "tbatuhan@ethz.ch, bukaya@ethz.ch"
 
@@ -29,15 +34,15 @@ import matplotlib.pyplot as plt
 # tools for plotting confusion matrices
 #from matplotlib import pyplot as plt
 #from conf_matrix import plot_confusion_matrix
-# for csp
-from channel_selection import CS_Model, channel_selection_csp, channel_selection_eegweights
+# for channel selection
+from channel_selection import CS_Model, channel_selection_eegweights_fromglobal
 
 # Select GPU
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
 # Remove excluded subjects from subjects list
-def exclude_subjects(all_subjects=range(90,96), excluded_subjects=[88,92,100,104]):
+def exclude_subjects(all_subjects=range(1,110), excluded_subjects=[88,92,100,104]):
     subjects = [x for x in all_subjects if (x not in excluded_subjects)]
     return subjects
 
@@ -73,10 +78,9 @@ os.makedirs(f'{results_dir}/plots/avg', exist_ok=True)
 num_classes_list = [4]
 # Exclude subjects whose data we do not use
 subjects = exclude_subjects()
-# For channel selection
+# Channel selection
 cs_model = CS_Model()
-cs_csp = False
-cs_eeg = False
+selected_channels = channel_selection_eegweights_fromglobal(cs_model.NO_channels, cs_model.NO_selected_channels, cs_model.NO_classes)
 
 for num_classes in num_classes_list:
     # using 5 folds
@@ -90,54 +94,18 @@ for num_classes in num_classes_list:
             subject = subjects[sub_idx]
             X_sub, y_sub = get.get_data(PATH, n_classes=num_classes, subjects_list=[subject])
             print(X_sub.shape)
-
-            # csp select channels for specific subject
-            if cs_csp:
-                selected_channels = channel_selection_csp(X_sub, y_sub, cs_model.NO_csp, cs_model.filter_bank, cs_model.time_windows, cs_model.NO_classes, cs_model.NO_channels, cs_model.NO_selected_channels, cs_model.channel_selection_method)
-                X_sub = X_sub[:,selected_channels,:]
-
             X_sub = np.expand_dims(X_sub, axis=1)
             y_sub_cat = np_utils.to_categorical(y_sub)
             SAMPLE_SIZE = np.shape(X_sub)[3]
             kf_subject = StratifiedKFold(n_splits=4, shuffle=True, random_state=42)
             sub_split_ctr = 0
 
-            # eegnet weight select channels for specific subject
-            if cs_eeg:
-                sub_str = '{0:03d}'.format(subject)
-                w_ss = 0
-                for i in range(0, 4):
-                    model_ss = load_model(f'SS-TL/64ch/model/subject{sub_str}_fold{i}.h5')
-                    w_ss += model_ss.layers[3].get_weights()[0] ** 2
-
-                selected_channels = channel_selection_eegweights(w_ss, cs_model.NO_channels, cs_model.NO_selected_channels)
-                X_sub = X_sub[:,:,selected_channels,:]
-
-            selected_channels = [2,3,9,10,37,43,48,63]
             X_sub = X_sub[:,:,selected_channels,:]
-
             print(X_sub.shape)
 
             for train_sub, test_sub in kf_subject.split(X_sub, y_sub):
                 print(f'N_Classes:{num_classes}, Model: {split_ctr} \n Subject: {subject:03d}, Split: {sub_split_ctr}')
-                # model = load_model(f'Global/model/global_class_{num_classes}_ds1_nch8_T3_split_{split_ctr}_v1.h5') # SS-TL from global model
-
-                if not cs_csp and not cs_eeg:
-                    model = load_model(f'Global/model/global_class_{num_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
-                else:
-                    model_global = load_model(f'Global/model/global_class_{num_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
-                    print(model_global.summary())
-                    model = models.EEGNet(nb_classes = cs_model.NO_classes, Chans=cs_model.NO_selected_channels, Samples=480, regRate=0.25,
-                                    dropoutRate=0.2, kernLength=128, poolLength=8, numFilters=8, dropoutType='Dropout')
-                    print(model.summary())
-
-                    adam_alpha = Adam(lr=(0.0001))
-                    model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
-                    pdb.set_trace()
-                    model.layers[1].set_weights(model_global.layers[1].get_weights())
-                    model.layers[2].set_weights(model_global.layers[2].get_weights())
-                    model.layers[3].set_weights([model_global.layers[3].get_weights()[0][selected_channels,:]])
-                    model.layers[4].set_weights(model_global.layers[4].get_weights())
+                model = load_model(f'Global/model/global_class_{num_classes}_ds1_nch{cs_model.NO_selected_channels}_T3_split_{split_ctr}_v1.h5') # SS-TL from global model
 
                 print(X_sub[test_sub].shape)
                 # pdb.set_trace()
