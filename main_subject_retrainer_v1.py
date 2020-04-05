@@ -2,7 +2,7 @@
 
 # 1. 64-channels global model trained,
 #    select N channels based on EEGNet weights,
-#    *train from scratch N channels global model,
+#    train from scratch N channels global model,
 #    *final epochs SS
 
 __author__ = "Batuhan Tomekce and Burak Alp Kaya"
@@ -67,7 +67,7 @@ lrates = [-3,-4,-5]
 # Set data path
 PATH = "/usr/scratch/badile01/sem20f12/files"
 # Make necessary directories for files
-results_dir=f'SS-TL'
+results_dir=f'SS-TL_v1'
 os.makedirs(f'{results_dir}/stats', exist_ok=True)
 os.makedirs(f'{results_dir}/model', exist_ok=True)
 os.makedirs(f'{results_dir}/plots', exist_ok=True)
@@ -80,7 +80,7 @@ num_classes_list = [4]
 subjects = exclude_subjects()
 # Channel selection
 cs_model = CS_Model()
-selected_channels = channel_selection_eegweights_fromglobal(cs_model.NO_channels, cs_model.NO_selected_channels, cs_model.NO_classes)
+# selected_channels = channel_selection_eegweights_fromglobal(cs_model.NO_channels, cs_model.NO_selected_channels, cs_model.NO_classes) # fold averaging
 
 for num_classes in num_classes_list:
     # using 5 folds
@@ -90,6 +90,8 @@ for num_classes in num_classes_list:
 
     split_ctr = 0
     for train_global, test_global in kf_global.split(subjects):
+        selected_channels = channel_selection_eegweights_fromglobal(cs_model.NO_channels, cs_model.NO_selected_channels, cs_model.NO_classes, split_ctr)
+
         for sub_idx in test_global:
             subject = subjects[sub_idx]
             X_sub, y_sub = get.get_data(PATH, n_classes=num_classes, subjects_list=[subject])

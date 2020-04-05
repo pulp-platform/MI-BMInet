@@ -34,8 +34,8 @@ import matplotlib.pyplot as plt
 # tools for plotting confusion matrices
 #from matplotlib import pyplot as plt
 #from conf_matrix import plot_confusion_matrix
-# for csp
-from channel_selection import CS_Model, channel_selection_csp, channel_selection_eegweights, channel_selection_eegweights_fromss
+# for channel selection
+from channel_selection import CS_Model, channel_selection_csp, channel_selection_eegweights_fromss
 
 # Select GPU
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
@@ -67,7 +67,7 @@ lrates = [-3,-4,-5]
 # Set data path
 PATH = "/usr/scratch/badile01/sem20f12/files"
 # Make necessary directories for files
-results_dir=f'SS-TL'
+results_dir=f'SS-TL_v2'
 os.makedirs(f'{results_dir}/stats', exist_ok=True)
 os.makedirs(f'{results_dir}/model', exist_ok=True)
 os.makedirs(f'{results_dir}/plots', exist_ok=True)
@@ -107,14 +107,13 @@ for num_classes in num_classes_list:
             kf_subject = StratifiedKFold(n_splits=4, shuffle=True, random_state=42)
             sub_split_ctr = 0
 
-            # eegnet weight select channels for specific subject
-            if cs_eeg:
-                selected_channels = channel_selection_eegweights_fromss(subject, cs_model.NO_channels, cs_model.NO_selected_channels)
-                X_sub = X_sub[:,:,selected_channels,:]
-
-            print(X_sub.shape)
-
             for train_sub, test_sub in kf_subject.split(X_sub, y_sub):
+                # eegnet weight select channels for specific subject
+                if cs_eeg:
+                    selected_channels = channel_selection_eegweights_fromss(subject, cs_model.NO_channels, cs_model.NO_selected_channels, sub_split_ctr)
+                    X_sub_cs = X_sub[:,:,selected_channels,:]
+                print(X_sub_cs.shape)
+
                 print(f'N_Classes:{num_classes}, Model: {split_ctr} \n Subject: {subject:03d}, Split: {sub_split_ctr}')
 
                 if not cs_csp and not cs_eeg:
@@ -131,12 +130,12 @@ for num_classes in num_classes_list:
                     # pdb.set_trace()
                     model.layers[1].set_weights(model_global.layers[1].get_weights())
                     model.layers[2].set_weights(model_global.layers[2].get_weights())
-                    model.layers[3].set_weights([model_global.layers[3].get_weights()[0][selected_channels,:]])
+                    model.layers[3].set_weights([model_global.layers[3].get_weights()[0][selected_channels,:,:,:]])
                     model.layers[4].set_weights(model_global.layers[4].get_weights())
 
-                print(X_sub[test_sub].shape)
+                print(X_sub_cs[test_sub].shape)
                 # pdb.set_trace()
-                first_eval = model.evaluate(X_sub[test_sub], y_sub_cat[test_sub], batch_size=16)
+                first_eval = model.evaluate(X_sub_cs[test_sub], y_sub_cat[test_sub], batch_size=16)
                 train_accu = np.array([])
                 valid_accu = np.array([])
                 train_loss = np.array([])
@@ -151,8 +150,8 @@ for num_classes in num_classes_list:
                     adam_alpha = Adam(lr=(10**lrate))
                     model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
                     # creating a history object
-                    history = model.fit(X_sub[train_sub], y_sub_cat[train_sub],
-                            validation_data=(X_sub[test_sub], y_sub_cat[test_sub]),
+                    history = model.fit(X_sub_cs[train_sub], y_sub_cat[train_sub],
+                            validation_data=(X_sub_cs[test_sub], y_sub_cat[test_sub]),
                             batch_size = 16, epochs = epochs[j], verbose = 2)
                     train_accu = np.append(train_accu, history.history['acc'])
                     valid_accu = np.append(valid_accu, history.history['val_acc'])

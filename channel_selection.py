@@ -17,7 +17,7 @@ class CS_Model:
 
 		self.fs = 160. # sampling frequency
 		self.NO_channels = 64 # number of EEG channels
-		self.NO_selected_channels = 16 # number of selected channels
+		self.NO_selected_channels = 8 # number of selected channels
 		self.NO_subjects = 105 # number of subjects
 		self.NO_csp = 12 # Total number of CSP features per band and timewindow
 		self.NO_classes = 4
@@ -165,23 +165,43 @@ def channel_selection_eegweights(w, NO_channels, NO_selected_channels):
 
 	return np.sort(selected_channels).astype(int)
 
-def channel_selection_eegweights_fromglobal(NO_channels, NO_selected_channels, NO_classes):
-	w = 0
-	for split_ctr in range(0, 5):
-		model_global = load_model(f'Global/model/global_class_{NO_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
-		w += model_global.layers[3].get_weights()[0] ** 2 # using values from all splits
+def channel_selection_eegweights_fromglobal(NO_channels, NO_selected_channels, NO_classes, split_ctr):
 
+	model_global = load_model(f'Global/model/global_class_{NO_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
+	w = model_global.layers[3].get_weights()[0] ** 2
 	selected_channels = channel_selection_eegweights(w, NO_channels, NO_selected_channels)
+
 	print(selected_channels)
 	return selected_channels
 
-def channel_selection_eegweights_fromss(subject, NO_channels, NO_selected_channels):
+def channel_selection_eegweights_fromss(subject, NO_channels, NO_selected_channels, sub_split_ctr):
 	sub_str = '{0:03d}'.format(subject)
-	w_ss = 0
-	for i in range(0, 4):
-	    model_ss = load_model(f'SS-TL/64ch/model/subject{sub_str}_fold{i}.h5')
-	    w_ss += model_ss.layers[3].get_weights()[0] ** 2 # using values from all splits
-
+	model_ss = load_model(f'SS-TL/64ch/model/subject{sub_str}_fold{sub_split_ctr}.h5')
+	w_ss = model_ss.layers[3].get_weights()[0] ** 2
 	selected_channels = channel_selection_eegweights(w_ss, NO_channels, NO_selected_channels)
+
 	print(selected_channels)
 	return selected_channels
+
+# -- channel selection eegweights using average of all splits --
+#
+# def channel_selection_eegweights_fromglobal(NO_channels, NO_selected_channels, NO_classes):
+# 	w = 0
+# 	for split_ctr in range(0, 5):
+# 		model_global = load_model(f'Global/model/global_class_{NO_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
+# 		w += model_global.layers[3].get_weights()[0] ** 2 # using values from all splits
+#
+# 	selected_channels = channel_selection_eegweights(w, NO_channels, NO_selected_channels)
+# 	print(selected_channels)
+# 	return selected_channels
+#
+# def channel_selection_eegweights_fromss(subject, NO_channels, NO_selected_channels):
+# 	sub_str = '{0:03d}'.format(subject)
+# 	w_ss = 0
+# 	for i in range(0, 4):
+# 	    model_ss = load_model(f'SS-TL/64ch/model/subject{sub_str}_fold{i}.h5')
+# 	    w_ss += model_ss.layers[3].get_weights()[0] ** 2 # using values from all splits
+#
+# 	selected_channels = channel_selection_eegweights(w_ss, NO_channels, NO_selected_channels)
+# 	print(selected_channels)
+# 	return selected_channels
