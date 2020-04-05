@@ -1,12 +1,11 @@
+/SS-TL_v1/
+/SS-TL_v2/
+/SS-TL_v4/
+/SS-TL_v5/
+
 /__pycache__/
 /.git/
 ._.DS_Store
 ._filters.py
 ._main_channel_selection.py
 .DS_Store
-
-#SS-TL Results
-SS_TL_v1/
-SS_TL_v2/
-SS_TL_v4/
-SS_TL_v5/
