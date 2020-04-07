@@ -1,8 +1,16 @@
+# Results
 /SS-TL_v1/
 /SS-TL_v2/
 /SS-TL_v4/
 /SS-TL_v5/
+/SS-TL_v6/
+/ss/*
+!/ss/64ch
 
+# Archived materials from previous project
+/archive/
+
+# Misc
 /__pycache__/
 /.git/
 ._.DS_Store
