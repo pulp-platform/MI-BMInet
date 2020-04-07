@@ -7,16 +7,6 @@ from keras.models import load_model
 __author__ = "Tianhong Gan"
 __email__ = "tianhonggan@outlook.com"
 
-class CS_Model:
-	def __init__(self):
-		self.data_path 	= '/usr/scratch/xavier/herschmi/EEG_data/physionet/' #data path
-
-		self.fs = 160. # sampling frequency
-		self.NO_channels = 64 # number of EEG channels
-		self.NO_selected_channels = 8 # number of selected channels
-		self.NO_subjects = 105 # number of subjects
-		self.NO_classes = 4
-
 '''CHANNEL SELECTION USING EEGNET WEIGHTS'''
 
 def channel_selection_eegweights(w, NO_channels, NO_selected_channels):

@@ -27,7 +27,7 @@ from sklearn.model_selection import KFold
 from sklearn.model_selection import StratifiedKFold
 
 # for channel selection
-from channel_selection import CS_Model, channel_selection_eegweights_fromglobal
+from channel_selection import channel_selection_eegweights_fromglobal
 
 # Select GPU
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
@@ -60,12 +60,13 @@ def exclude_subjects(all_subjects=range(1,110), excluded_subjects=[88,92,100,104
 #
 #################################################
 
-# For channel selection
-cs_model = CS_Model()
-# Specify number of classses for input data
-num_classes_list = [4]
 # Exclude subjects whose data we do not use
 subjects = exclude_subjects()
+
+# For channel selection
+NO_channels = 64 # total number of EEG channels
+NO_selected_channels = 8 # number of selected channels
+num_classes_list = [4] # specify number of classses for input data
 
 # Retraining parameters
 n_epochs = 10
@@ -75,7 +76,7 @@ verbose = 2 # verbosity for data loader and keras: 0 minimum
 # Set data path
 PATH = "/usr/scratch/badile01/sem20f12/files"
 # Make necessary directories for files
-results_dir=f'ss/{cs_model.NO_selected_channels}ch'
+results_dir=f'ss/{NO_selected_channels}ch'
 os.makedirs(f'{results_dir}/stats', exist_ok=True)
 os.makedirs(f'{results_dir}/model', exist_ok=True)
 os.makedirs(f'{results_dir}/plots', exist_ok=True)
@@ -91,7 +92,7 @@ for num_classes in num_classes_list:
 
     for train_global, test_global in kf_global.split(subjects):
         # Select channels for this fold
-        selected_channels = channel_selection_eegweights_fromglobal(cs_model.NO_channels, cs_model.NO_selected_channels, cs_model.NO_classes, split_ctr)
+        selected_channels = channel_selection_eegweights_fromglobal(NO_channels, NO_selected_channels, num_classes, split_ctr)
 
         for sub_idx in test_global:
             subject = subjects[sub_idx]
@@ -105,7 +106,7 @@ for num_classes in num_classes_list:
 
             for train_sub, test_sub in kf_subject.split(X_sub, y_sub):
                 print(f'N_Classes:{num_classes}, Model: {split_ctr} \n Subject: {subject:03d}, Split: {sub_split_ctr}')
-                model = load_model(f'global/model/global_class_{num_classes}_ds1_nch{cs_model.NO_selected_channels}_T3_split_{split_ctr}_v1.h5') # SS-TL from global model
+                model = load_model(f'global/model/global_class_{num_classes}_ds1_nch{NO_selected_channels}_T3_split_{split_ctr}_v1.h5') # SS-TL from global model
 
                 # pdb.set_trace()
                 first_eval = model.evaluate(X_sub[test_sub], y_sub_cat[test_sub], batch_size=16)
@@ -185,7 +186,7 @@ for num_classes in num_classes_list:
         np.savetxt(f'{results_dir}/stats/{num_classes}_class/valid_accu_v1_class_{num_classes}_subject_{sub_str}_avg.csv', valid_accu)
         np.savetxt(f'{results_dir}/stats/{num_classes}_class/train_loss_v1_class_{num_classes}_subject_{sub_str}_avg.csv', train_loss)
         np.savetxt(f'{results_dir}/stats/{num_classes}_class/valid_loss_v1_class_{num_classes}_subject_{sub_str}_avg.csv', valid_loss)
-        
+
         # Plot Accuracy
         plt.plot(train_accu, label='Training')
         plt.plot(valid_accu, label='Validation')
