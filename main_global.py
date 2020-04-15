@@ -116,7 +116,7 @@ for num_classes in num_classes_list:
                     print(model.summary())
 
                     print(f'Split = {split_ctr}')
-                    
+
                     # Set Learning Rate
                     adam_alpha = Adam(lr=(0.0001))
                     model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])

@@ -156,6 +156,7 @@ for num_classes in num_classes_list:
                 sub_split_ctr = sub_split_ctr + 1
         split_ctr = split_ctr + 1
 
+# Get average for each subject and plot
 for num_classes in num_classes_list:
     os.makedirs(f'{results_dir}/stats/{num_classes}_class', exist_ok=True)
     os.makedirs(f'{results_dir}/plots/{num_classes}_class', exist_ok=True)
@@ -207,6 +208,7 @@ for num_classes in num_classes_list:
         plt.savefig(f'{results_dir}/plots/{num_classes}_class/loss_avg_{num_classes}_c_{sub_str}.pdf')
         plt.clf()
 
+# Get average for everything and plot
 for num_classes in num_classes_list:
     train_accu = np.zeros(n_epochs+1)
     valid_accu = np.zeros(n_epochs+1)
@@ -256,6 +258,7 @@ for num_classes in num_classes_list:
     plt.savefig(f'{results_dir}/plots/avg/loss_avg_{num_classes}_c.pdf')
     plt.clf()
 
+# Get average of each model and plot
 for num_classes in num_classes_list:
     num_splits = 5
     kf_global = KFold(n_splits = num_splits)

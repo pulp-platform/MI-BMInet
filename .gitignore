@@ -11,7 +11,7 @@
 /archive/
 
 # Misc
-/__pycache__/
+__pycache__/
 /.git/
 ._.DS_Store
 ._filters.py
