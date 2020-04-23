@@ -80,7 +80,7 @@ exp_dir = f'{results_dir}{experiment_name}/'
 num_classes_list = [3] # list of number of classes to test {2,3,4}
 n_epochs = 100 # number of epochs for training
 n_ds = 1 # downsamlping factor {1,2,3}
-n_ch_list = [64]#[2,3,5,7,9,11] # number of channels {8,19,27,38,64}
+n_ch_list = [4,6,10,14,18,20]#[2,3,5,7,9,11] # number of channels {8,19,27,38,64}
 T_list = [3] # duration to classify {1,2,3}
 
 # model settings 

@@ -105,7 +105,7 @@ n_subjects = len(subjects)
 n_ds = 1
 T = 3
 #n_ch = 64
-n_ch_list = [2,3,5,7,9,11,64] # number of channels {8,19,27,38,64}
+n_ch_list = [4,6,10,14,18,20]#[2,3,5,7,9,11,64] # number of channels {8,19,27,38,64}
 verbose = 0 # verbosity for data loader and keras: 0 minimum, 
 
 # retraining parameters
