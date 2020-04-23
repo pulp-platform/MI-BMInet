@@ -40,6 +40,20 @@ def eeg_reduction(x, n_ds = 1, n_ch = 64, T = 3, fs = 160):
 		channels = np.array([8,10,12,21,23,29,31,33,35,37,40,41,46,48,50,52,54,60,62])
 	elif n_ch ==8: 
 		channels = np.array([8,10,12,25,27,48,52,57])
+	elif n_ch == 2: 
+		channels = np.array([8,12]) # C3, C4
+	elif n_ch == 3: 
+		channels = np.array([8,10,12]) # C3, CZ, C4
+	elif n_ch == 5:
+		channels = np.array([7,8,10,12,13]) # C5, C3, CZ, C4, C6
+	elif n_ch == 7:
+		channels = np.array([7,8,9,10,11,12,13]) # C5, C3, C1, CZ, C2, C4, C6
+	elif n_ch == 9:
+		channels = np.array([40,7,8,9,10,11,12,13,41]) # T7,C5, C3, C1, CZ, C2, C4, C6,T8
+	elif n_ch == 11:
+		channels = np.array([42,40,7,8,9,10,11,12,13,41,43]) # T9,T7,C5,C3,C1,CZ,C2,C4,C6,T8,T10
+
+
 
 
 	n_s_orig = int(T*fs)

@@ -36,7 +36,7 @@ def get_data(path, long = False, normalization = 0,subjects_list=range(1,110), n
         list of subject numbers to be loaded
     n_classes:      int 
         number of classes
-        2: L/R, 3: L/R/0, 4
+        2: L/R, 3: L/R/0, 4: L/R/F/0
     
     Return: X:  numpy array (n_sub*n_trials, 64, n_samples) 
                 EEG data 

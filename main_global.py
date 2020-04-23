@@ -1,4 +1,6 @@
-# Copyright (c) 2020 ETH Zurich, Xiaying Wang, Michael Hersche, Batuhan Toemekce, Burak Kaya, Michele Magno, Luca Benini
+# Copyright (c) 2020 ETH Zurich, Xiaying Wang, Michael Hersche, 
+#                               Batuhan Toemekce, Burak Kaya, 
+#                               Michele Magno, Luca Benini
 #!/usr/bin/env python3
 
 #################################################
@@ -24,7 +26,7 @@ import models as models
 from eeg_reduction import eeg_reduction
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
 
 #################################################
@@ -55,7 +57,7 @@ def save_results(history,num_classes,n_ds,n_ch,T,split_ctr):
     results[1] = history.history['val_acc']
     results[2] = history.history['loss']
     results[3] = history.history['val_loss']
-    results_str = f'{results_dir}/stats/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.csv'
+    results_str = f'{exp_dir}/stats/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.csv'
                  
     np.savetxt(results_str, np.transpose(results))
     return results[0:2,-1]
@@ -63,7 +65,7 @@ def save_results(history,num_classes,n_ds,n_ch,T,split_ctr):
 
 
 # CHANGE EXPERIMENT NAME FOR DIFFERENT TESTS!!
-experiment_name = 'your-global-experiment'
+experiment_name = 'headphone_eeg'
 
 datapath = "/usr/scratch/xavier/herschmi/EEG_data/physionet/"
 results_dir=f'results/'
@@ -72,11 +74,13 @@ os.makedirs(f'{results_dir}{experiment_name}/stats', exist_ok=True)
 os.makedirs(f'{results_dir}{experiment_name}/model', exist_ok=True)
 os.makedirs(f'{results_dir}{experiment_name}/plots', exist_ok=True)
 
+exp_dir = f'{results_dir}{experiment_name}/'
+
 # HYPERPARAMETER TO SET 
-num_classes_list = [4] # list of number of classes to test {2,3,4}
+num_classes_list = [3] # list of number of classes to test {2,3,4}
 n_epochs = 100 # number of epochs for training
 n_ds = 1 # downsamlping factor {1,2,3}
-n_ch_list = [64] # number of channels {8,19,27,38,64}
+n_ch_list = [64]#[2,3,5,7,9,11] # number of channels {8,19,27,38,64}
 T_list = [3] # duration to classify {1,2,3}
 
 # model settings 
@@ -91,12 +95,12 @@ for num_classes in num_classes_list:
         for T in T_list:
 
             # Load data
-            X, y = get.get_data(datapath, n_classes=num_classes)
+            #X, y = get.get_data(datapath, n_classes=num_classes)
 
             ######## If you want to save the data after loading once from .edf (faster)
             #np.savez(datapath+f'{num_classes}class',X_Train = X_Train, y_Train = y_Train)
-            #npzfile = np.load(datapath+f'{num_classes}class.npz')
-            #X, y = npzfile['X_Train'], npzfile['y_Train']
+            npzfile = np.load(datapath+f'{num_classes}class.npz')
+            X, y = npzfile['X_Train'], npzfile['y_Train']
 
             # reduce EEG data (downsample, number of channels, time window)
             X = eeg_reduction(X,n_ds = n_ds, n_ch = n_ch, T = T)
@@ -136,7 +140,7 @@ for num_classes in num_classes_list:
                 print('Fold {:}\t{:.4f}\t{:.4f}'.format(split_ctr,acc[split_ctr,0], acc[split_ctr,1]))
 
                 #Save model
-                model.save(f'{results_dir}/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.h5')
+                model.save(f'{exp_dir}/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.h5')
 
                 #Clear Models
                 K.clear_session()
