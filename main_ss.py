@@ -29,7 +29,7 @@ import get_data as get
 from eeg_reduction import eeg_reduction
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
 #################################################
@@ -85,8 +85,8 @@ def save_results(first_eval,tr_hist,num_classes,sub,split,n_ds,n_ch,T):
 
 ##############################################
 # CHANGE EXPERIMENT NAME FOR DIFFERENT TESTS!!
-ss_experiment = 'ss_headphone_eeg'
-global_experiment = 'headphone_eeg'
+ss_experiment = 'ss_headphone_eeg_CProw'
+global_experiment = 'headphone_eeg_CProw'
 ##############################################
 datapath = "/usr/scratch/xavier/herschmi/EEG_data/physionet/"
 

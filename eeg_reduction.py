@@ -52,19 +52,34 @@ def eeg_reduction(x, n_ds = 1, n_ch = 64, T = 3, fs = 160):
 		channels = np.array([40,7,8,9,10,11,12,13,41]) # T7,C5, C3, C1, CZ, C2, C4, C6,T8
 	elif n_ch == 11:
 		channels = np.array([42,40,7,8,9,10,11,12,13,41,43]) # T9,T7,C5,C3,C1,CZ,C2,C4,C6,T8,T10
-	# 2 row band 
+	# 2 row band rows FC and C
+	# elif n_ch ==4: 
+	# 	channels = np.array([8,10,1,5]) # C3, C4 // FC3, FC4
+	# elif n_ch == 6:
+	# 	channels = np.array([8,10,12,1,3,5]) # C3, CZ, C4, // FC3, FCZ, FC4
+	# elif n_ch == 10:
+	# 	channels = np.array([7,8,10,12,13,0,1,3,5,6]) # C5, C3, CZ, C4, C6 // FC5,FC3, FCZ, FC4,FC6
+	# elif n_ch == 14:
+	# 	channels = np.array([7,8,9,10,11,12,13,0,1,2,3,4,5,6]) # C5, C3, C1, CZ, C2, C4, C6//FC5, FC3, FC1, FCZ, FC2, FC4, FC6
+	# elif n_ch == 18:
+	# 	channels = np.array([40,7,8,9,10,11,12,13,41,38,0,1,2,3,4,5,6,39]) # T7,C5, C3, C1, CZ, C2, C4, C6,T8// FT7, FC5, FC3, FC1, FCZ, FC2, FC4, FC6, FT8
+	# elif n_ch == 20:
+	# 	channels = np.array([42,40,7,8,9,10,11,12,13,41,43,38,0,1,2,3,4,5,6,39])# T9,T7,C5,C3,C1,CZ,C2,C4,C6,T8,T10// FT7, FC5, FC3, FC1, FCZ, FC2, FC4, FC6, FT8
+
+
+	# 2 row band rows 
 	elif n_ch ==4: 
-		channels = np.array([8,10,1,5]) # C3, C4 // FC3, FC4
+		channels = np.array([8,10,15,19]) # C3, C4 // CP3, CP4
 	elif n_ch == 6:
-		channels = np.array([8,10,12,1,3,5]) # C3, CZ, C4, // FC3, FCZ, FC4
+		channels = np.array([8,10,12,15,17,19]) # C3, CZ, C4, // CP3, CPZ, CP4
 	elif n_ch == 10:
-		channels = np.array([7,8,10,12,13,0,1,3,5,6]) # C5, C3, CZ, C4, C6 // FC5,FC3, FCZ, FC4,FC6
+		channels = np.array([7,8,10,12,13,14,15,17,19,20]) # C5, C3, CZ, C4, C6 // CP5, CP3, CPZ, CP4, CP6
 	elif n_ch == 14:
-		channels = np.array([7,8,9,10,11,12,13,0,1,2,3,4,5,6]) # C5, C3, C1, CZ, C2, C4, C6//FC5, FC3, FC1, FCZ, FC2, FC4, FC6
+		channels = np.array([7,8,9,10,11,12,13,14,15,16,17,18,19,20]) # C5, C3, C1, CZ, C2, C4, C6// CP5, CP3, CP1, CPZ, CP2, CP4, CP6
 	elif n_ch == 18:
-		channels = np.array([40,7,8,9,10,11,12,13,41,38,0,1,2,3,4,5,6,39]) # T7,C5, C3, C1, CZ, C2, C4, C6,T8// FT7, FC5, FC3, FC1, FCZ, FC2, FC4, FC6, FT8
+		channels = np.array([40,7,8,9,10,11,12,13,41,44,14,15,16,17,18,19,20,45]) # T7,C5, C3, C1, CZ, C2, C4, C6,T8// TP7, CP5, CP3, CP1, CPZ, CP2, CP4, CP6, TP8
 	elif n_ch == 20:
-		channels = np.array([42,40,7,8,9,10,11,12,13,41,43,38,0,1,2,3,4,5,6,39])# T9,T7,C5,C3,C1,CZ,C2,C4,C6,T8,T10// FT7, FC5, FC3, FC1, FCZ, FC2, FC4, FC6, FT8
+		channels = np.array([42,40,7,8,9,10,11,12,13,41,43,44,14,15,16,17,18,19,20,45])# T9,T7,C5,C3,C1,CZ,C2,C4,C6,T8,T10// TP7, CP5, CP3, CP1, CPZ, CP2, CP4, CP6, TP8
 
 
 

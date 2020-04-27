@@ -26,7 +26,7 @@ import models as models
 from eeg_reduction import eeg_reduction
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 
 #################################################
@@ -65,7 +65,7 @@ def save_results(history,num_classes,n_ds,n_ch,T,split_ctr):
 
 
 # CHANGE EXPERIMENT NAME FOR DIFFERENT TESTS!!
-experiment_name = 'headphone_eeg'
+experiment_name = 'headphone_eeg_CProw'
 
 datapath = "/usr/scratch/xavier/herschmi/EEG_data/physionet/"
 results_dir=f'results/'
