@@ -1,18 +1,13 @@
 #!/usr/bin/env python3
 
-# 2. 64 channels global model trained,
-#    64 channels final epoch SS,
-#    *then select 8 channels based on SS EEGNet weights,
-#    *train last epochs 8 channels SS
-
-__author__ = "Batuhan Tomekce and Burak Alp Kaya"
-__email__ = "tbatuhan@ethz.ch, bukaya@ethz.ch"
+__author__ = "Batuhan Tomekce, Burak Alp Kaya, Tianhong Gan"
+__email__ = "tbatuhan@ethz.ch, bukaya@ethz.ch, tianhonggan@outlook.com"
 
 import numpy as np
 import os
 import pdb
 
-# our functions to get present data
+# our functions to get and present data
 import pyedflib
 import get_data as get
 import matplotlib.pyplot as plt
@@ -32,7 +27,7 @@ from sklearn.model_selection import KFold
 from sklearn.model_selection import StratifiedKFold
 
 # for channel selection
-from channel_selection import CS_Model, channel_selection_csp, channel_selection_eegweights_fromss
+from channel_selection import channel_selection_eegweights_fromglobal, channel_selection_eegweights_fromss
 
 # Select GPU
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
@@ -43,51 +38,53 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 # Remove excluded subjects from subjects list
 #
 #################################################
+
 def exclude_subjects(all_subjects=range(1,110), excluded_subjects=[88,92,100,104]):
     subjects = [x for x in all_subjects if (x not in excluded_subjects)]
     return subjects
 
 #################################################
 #
-# Learning Rate Sparse Scheduling
-# used on Subject Specific Retraining
+# Version 1
 #
-# 5 Global models have alredy been trained
-# now, these models are used, and further
-# (subject-specifically) retrained.
+# 64-channel global model trained,
+# selected N channels based on EEGNet weights,
+# train from scratch N-channel global model,
+# use N-channel global model to retrain final epoch SS.
+#
+# 5 global models, one for each fold are used
+# and channels selected for each.
 #
 # Finally, results within, and across
 # subjects are averaged and plotted.
 #
 #################################################
 
+# Exclude subjects whose data we do not use
+subjects = exclude_subjects()
+
 # For channel selection
-cs_model = CS_Model()
-cs_csp = False
-cs_eeg = True
+NO_channels = 64 # total number of EEG channels
+NO_selected_channels = 8 # number of selected channels
+num_classes_list = [4] # specify number of classses for input data
+
+# Retraining parameters
+n_epochs = 10
+lr = 1e-3
+verbose = 2 # verbosity for data loader and keras: 0 minimum
 
 # Set data path
 PATH = "/usr/scratch/badile01/sem20f12/files"
 # Make necessary directories for files
-results_dir=f'SS-TL_v2/{cs_model.NO_selected_channels}ch'
+results_dir=f'ssv2/{NO_selected_channels}ch'
 os.makedirs(f'{results_dir}/stats', exist_ok=True)
 os.makedirs(f'{results_dir}/model', exist_ok=True)
 os.makedirs(f'{results_dir}/plots', exist_ok=True)
 os.makedirs(f'{results_dir}/stats/avg', exist_ok=True)
 os.makedirs(f'{results_dir}/plots/avg', exist_ok=True)
 
-# Specify number of classses for input data
-num_classes_list = [4]
-# Exclude subjects whose data we do not use
-subjects = exclude_subjects()
-
-# retraining parameters
-n_epochs = 25
-lr = 1e-2
-verbose = 2 # verbosity for data loader and keras: 0 minimum
-
 for num_classes in num_classes_list:
-    # using 5 folds
+    # Using 5 folds
     num_splits = 5
     kf_global = KFold(n_splits = num_splits)
 
@@ -97,13 +94,6 @@ for num_classes in num_classes_list:
         for sub_idx in test_global:
             subject = subjects[sub_idx]
             X_sub, y_sub = get.get_data(PATH, n_classes=num_classes, subjects_list=[subject])
-            print(X_sub.shape)
-
-            # csp select channels for specific subject
-            if cs_csp:
-                selected_channels = channel_selection_csp(X_sub, y_sub, cs_model.NO_csp, cs_model.filter_bank, cs_model.time_windows, cs_model.NO_classes, cs_model.NO_channels, cs_model.NO_selected_channels, cs_model.channel_selection_method)
-                X_sub = X_sub[:,selected_channels,:]
-
             X_sub = np.expand_dims(X_sub, axis=1)
             y_sub_cat = np_utils.to_categorical(y_sub)
             SAMPLE_SIZE = np.shape(X_sub)[3]
@@ -111,36 +101,33 @@ for num_classes in num_classes_list:
             sub_split_ctr = 0
 
             for train_sub, test_sub in kf_subject.split(X_sub, y_sub):
-                # eegnet weight select channels for specific subject
-                if cs_eeg:
-                    selected_channels = channel_selection_eegweights_fromss(subject, cs_model.NO_channels, cs_model.NO_selected_channels, sub_split_ctr)
-                    X_sub_cs = X_sub[:,:,selected_channels,:]
-                print(X_sub_cs.shape)
+                selected_channels = channel_selection_eegweights_fromss(subject, NO_channels, NO_selected_channels, sub_split_ctr)
+                X_sub_cs = X_sub[:,:,selected_channels,:]
 
                 print(f'N_Classes:{num_classes}, Model: {split_ctr} \n Subject: {subject:03d}, Split: {sub_split_ctr}')
 
-                if not cs_csp and not cs_eeg:
-                    model = load_model(f'Global/model/global_class_{num_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
-                else:
-                    model_global = load_model(f'Global/model/global_class_{num_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
-                    model = models.EEGNet(nb_classes = cs_model.NO_classes, Chans=cs_model.NO_selected_channels, Samples=480, regRate=0.25,
-                                    dropoutRate=0.2, kernLength=128, poolLength=8, numFilters=8, dropoutType='Dropout')
+                model_global = load_model(f'global/model/global_class_{num_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
+                model = models.EEGNet(nb_classes = num_classes, Chans=NO_selected_channels, Samples=480, regRate=0.25,
+                                dropoutRate=0.2, kernLength=128, poolLength=8, numFilters=8, dropoutType='Dropout')
 
-                    adam_alpha = Adam(lr=(0.0001))
-                    model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
-                    # pdb.set_trace()
-                    model.layers[1].set_weights(model_global.layers[1].get_weights())
-                    model.layers[2].set_weights(model_global.layers[2].get_weights())
-                    model.layers[3].set_weights([model_global.layers[3].get_weights()[0][selected_channels,:,:,:]])
-                    model.layers[4].set_weights(model_global.layers[4].get_weights())
+                adam_alpha = Adam(lr=(0.0001))
+                model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
+                # pdb.set_trace()
+                model.layers[1].set_weights(model_global.layers[1].get_weights())
+                model.layers[2].set_weights(model_global.layers[2].get_weights())
+                model.layers[3].set_weights([model_global.layers[3].get_weights()[0][selected_channels,:,:,:]])
+                model.layers[4].set_weights(model_global.layers[4].get_weights())
+                model.layers[8].set_weights(model_global.layers[8].get_weights())
+                model.layers[9].set_weights(model_global.layers[9].get_weights())
+                model.layers[14].set_weights(model_global.layers[14].get_weights())
 
-                print(X_sub_cs[test_sub].shape)
                 # pdb.set_trace()
                 first_eval = model.evaluate(X_sub_cs[test_sub], y_sub_cat[test_sub], batch_size=16)
                 train_accu = np.array([])
                 valid_accu = np.array([])
                 train_loss = np.array([])
                 valid_loss = np.array([])
+
                 # The first elements of the arrays from evaluation
                 train_accu = np.append(train_accu, first_eval[1])
                 valid_accu = np.append(valid_accu, first_eval[1])
@@ -150,7 +137,8 @@ for num_classes in num_classes_list:
                 # Set Learning Rate
                 adam_alpha = Adam(lr=lr)
                 model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
-                # creating a history object
+
+                # Creating a history object
                 history = model.fit(X_sub_cs[train_sub], y_sub_cat[train_sub],
                         validation_data=(X_sub_cs[test_sub], y_sub_cat[test_sub]),
                         batch_size = 16, epochs = n_epochs, verbose = verbose)
@@ -161,6 +149,7 @@ for num_classes in num_classes_list:
                 valid_loss = np.append(valid_loss, history.history['val_loss'])
 
                 sub_str = '{0:03d}'.format(subject)
+
                 # Save metrics
                 train_accu_str = f'{results_dir}/stats/train_accu_v1_class_{num_classes}_subject_{sub_str}_fold_{sub_split_ctr}.csv'
                 valid_accu_str = f'{results_dir}/stats/valid_accu_v1_class_{num_classes}_subject_{sub_str}_fold_{sub_split_ctr}.csv'
@@ -172,14 +161,15 @@ for num_classes in num_classes_list:
                 np.savetxt(train_loss_str, train_loss)
                 np.savetxt(valid_loss_str, valid_loss)
 
-                #Save model
-                #print('Saving model...')
+                # Save model
+                # print('Saving model...')
                 # model.save(f'{results_dir}/model/subject{sub_str}_fold{sub_split_ctr}.h5')
 
                 K.clear_session()
                 sub_split_ctr = sub_split_ctr + 1
         split_ctr = split_ctr + 1
 
+# Get average for each subject and plot
 for num_classes in num_classes_list:
     os.makedirs(f'{results_dir}/stats/{num_classes}_class', exist_ok=True)
     os.makedirs(f'{results_dir}/plots/{num_classes}_class', exist_ok=True)
@@ -210,6 +200,7 @@ for num_classes in num_classes_list:
         np.savetxt(f'{results_dir}/stats/{num_classes}_class/valid_accu_v1_class_{num_classes}_subject_{sub_str}_avg.csv', valid_accu)
         np.savetxt(f'{results_dir}/stats/{num_classes}_class/train_loss_v1_class_{num_classes}_subject_{sub_str}_avg.csv', train_loss)
         np.savetxt(f'{results_dir}/stats/{num_classes}_class/valid_loss_v1_class_{num_classes}_subject_{sub_str}_avg.csv', valid_loss)
+
         # Plot Accuracy
         plt.plot(train_accu, label='Training')
         plt.plot(valid_accu, label='Validation')
@@ -219,6 +210,7 @@ for num_classes in num_classes_list:
         plt.legend()
         plt.savefig(f'{results_dir}/plots/{num_classes}_class/accu_avg_{num_classes}_c_{sub_str}.pdf')
         plt.clf()
+
         # Plot Loss
         plt.plot(train_loss, label='Training')
         plt.plot(valid_loss, label='Validation')
@@ -229,6 +221,7 @@ for num_classes in num_classes_list:
         plt.savefig(f'{results_dir}/plots/{num_classes}_class/loss_avg_{num_classes}_c_{sub_str}.pdf')
         plt.clf()
 
+# Get average for everything and plot
 for num_classes in num_classes_list:
     train_accu = np.zeros(n_epochs+1)
     valid_accu = np.zeros(n_epochs+1)
@@ -267,6 +260,7 @@ for num_classes in num_classes_list:
     plt.legend()
     plt.savefig(f'{results_dir}/plots/avg/accu_avg_{num_classes}_c.pdf')
     plt.clf()
+
     # Plot Loss
     plt.plot(train_loss, label='Training')
     plt.plot(valid_loss, label='Validation')
@@ -277,6 +271,7 @@ for num_classes in num_classes_list:
     plt.savefig(f'{results_dir}/plots/avg/loss_avg_{num_classes}_c.pdf')
     plt.clf()
 
+# Get average of each model and plot
 for num_classes in num_classes_list:
     num_splits = 5
     kf_global = KFold(n_splits = num_splits)
@@ -290,6 +285,7 @@ for num_classes in num_classes_list:
         for sub_idx in test_global:
             subject = subjects[sub_idx]
             sub_str = '{0:03d}'.format(subject)
+
             train_accu_step = np.loadtxt(f'{results_dir}/stats/{num_classes}_class/train_accu_v1_class_{num_classes}_subject_{sub_str}_avg.csv')
             valid_accu_step = np.loadtxt(f'{results_dir}/stats/{num_classes}_class/valid_accu_v1_class_{num_classes}_subject_{sub_str}_avg.csv')
             train_loss_step = np.loadtxt(f'{results_dir}/stats/{num_classes}_class/train_loss_v1_class_{num_classes}_subject_{sub_str}_avg.csv')
@@ -319,6 +315,7 @@ for num_classes in num_classes_list:
         plt.legend()
         plt.savefig(f'{results_dir}/plots/avg/accu_avg_{num_classes}_c_model_{split_ctr}.pdf')
         plt.clf()
+
         # Plot Loss
         plt.plot(train_loss, label='Training')
         plt.plot(valid_loss, label='Validation')

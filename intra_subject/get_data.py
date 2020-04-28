@@ -16,8 +16,8 @@ import statistics as stats
 import random
 
 
-__author__ = "Batuhan Tomekce and Burak Alp Kaya"
-__email__ = "tbatuhan@ethz.ch, bukaya@ethz.ch"
+__author__ = "Batuhan Tomekce, Burak Alp Kaya, Tianhong Gan"
+__email__ = "tbatuhan@ethz.ch, bukaya@ethz.ch, tianhonggan@outlook.com"
 
 def get_data(PATH, long = False, normalization = 0,subjects_list=range(1,110), n_classes=4):
     '''
@@ -260,6 +260,8 @@ def read_data(subjects , runs, PATH, long=False):
                     data_step = data_step[14:21]
                     labels_int = labels_int[14:21]
                 '''
+
+            # load data ready for 3-fold validation
 
             if run in fold1:
                 X_fold1 = np.concatenate((X_fold1,data_step))
