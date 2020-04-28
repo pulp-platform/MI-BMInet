@@ -8,6 +8,7 @@ import pdb
 import numpy as np
 import scipy.signal as scp
 from channel_selection import channel_selection_eegweights_fromglobal
+from plot_channels import plot_channels
 
 def eeg_reduction_cs(x, split_ctr, n_ds = 1, n_ch = 64, T = 3, fs = 160, num_classes = 4):
 	'''
@@ -34,6 +35,7 @@ def eeg_reduction_cs(x, split_ctr, n_ds = 1, n_ch = 64, T = 3, fs = 160, num_cla
 	'''
 
 	channels = channel_selection_eegweights_fromglobal(64, n_ch, num_classes, split_ctr)
+	plot_channels(channels, num_classes, n_ds, n_ch, T, split_ctr)
 
 	n_s_orig = int(T*fs)
 	n_s = int(np.ceil(T*fs/n_ds)) # number of time samples

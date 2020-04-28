@@ -12,5 +12,6 @@ __pycache__/
 /.git/
 ._.DS_Store
 ._filters.py
+._plot_channels.py
 ._main_channel_selection.py
 .DS_Store

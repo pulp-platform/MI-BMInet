@@ -63,7 +63,7 @@ num_splits = 5
 
 # data settings
 n_ds_vec = [1] # downsampling factor [1,2,3]
-n_ch_vec = [24,38] # number of channels [8, 16, 19, 24, 38, 64]
+n_ch_vec = [24] # number of channels [8, 16, 19, 24, 38, 64]
 T_vec = [3] # duration to classify
 
 for num_classes in num_classes_list:

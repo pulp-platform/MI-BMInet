@@ -1,16 +1,14 @@
+import os
 from PIL import Image
 
-channels = [2,4,13,24,35,38,47,60]
-no_channels = len(channels)
-
-def plot_channels(channels):
-    background = Image.open(f'64_channel_sharbrough_bg.png')
+def plot_channels(channels, num_classes, n_ds, n_ch, T, split_ctr):
+    os.makedirs(f'plot_channels/plots', exist_ok=True)
+    background = Image.open(f'plot_channels/64_channel_sharbrough_bg.png')
     for i in channels:
-        img = Image.open(f'channels/{i}.png')
+        channel = i + 1
+        img = Image.open(f'plot_channels/channels/{channel}.png')
         background.paste(img, (0, 0), img)
-    background.save(f'plots/{no_channels}ch.png',"PNG")
-
-plot_channels(channels)
+    background.save(f'plot_channels/plots/class{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.png',"PNG")
 
 ''' make white background transparent '''
 
