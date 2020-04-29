@@ -31,7 +31,7 @@ from channel_selection import channel_selection_eegweights_fromglobal
 from eeg_reduction import eeg_reduction_cs
 
 # layer selection
-from layer_freeze import freeze_layers, print_model
+from layer_freeze import freeze_layers
 
 # Select GPU
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
@@ -69,18 +69,21 @@ subjects = exclude_subjects()
 
 # For channel selection
 NO_channels = 64 # total number of EEG channels
-n_ch_vec = [8] # number of selected channels
+n_ch_vec = [64] # number of selected channels
 num_classes_list = [4] # specify number of classses for input data
 
-# layers_to_freeze = np.array([0,1])
-# no_layers_unfrozen = 5-len(layers_to_freeze)
+# For freezing layers
 no_layers_unfrozen = 3
+if no_layers_unfrozen < 4 and no_layers_unfrozen > 0:
+    freeze_training = True
+else:
+    freeze_training = False
 
 # Retraining parameters
-if no_layers_unfrozen > 3:
+if not freeze_training:
     n_epochs = 10
 else:
-    n_epochs = 2
+    n_epochs = 3
 lr = 1e-3
 verbose = 2 # verbosity for data loader and keras: 0 minimum
 
@@ -89,7 +92,7 @@ PATH = "/usr/scratch/badile01/sem20f12/files"
 
 for NO_selected_channels in n_ch_vec:
     # Make necessary directories for files
-    if no_layers_unfrozen > 3:
+    if not freeze_training:
         results_dir=f'ss/{NO_selected_channels}ch'
     else:
         results_dir=f'ss/freeze{no_layers_unfrozen}/{NO_selected_channels}ch'
@@ -119,9 +122,9 @@ for NO_selected_channels in n_ch_vec:
 
                 model = load_model(f'global/model/global_class_{num_classes}_ds1_nch{NO_selected_channels}_T3_split_{sub_split_ctr}_v1.h5') # SS-TL from global model
 
-                if no_layers_unfrozen < 4 && no_layers_unfrozen > 0:
-                    freeze_layers(model, no_layers_unfrozen)
-                    print_model(model, no_layers_unfrozen)
+                if freeze_training:
+                    model = freeze_layers(model, no_layers_unfrozen, verbose = True)
+                    # print_model(model, no_layers_unfrozen)
 
                 first_eval = model.evaluate(X_sub_cs[test_sub], y_sub_cat[test_sub], batch_size=16)
 

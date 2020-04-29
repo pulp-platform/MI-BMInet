@@ -1,7 +1,20 @@
 import os
 from PIL import Image
 
+__author__ = "Tianhong Gan"
+__email__ = "tianhonggan@outlook.com"
+
 def plot_channels(channels, num_classes, n_ds, n_ch, T, split_ctr):
+    ''' plot channels selected on 64 channel template
+
+    Keyword arguments:
+    channels -- array of selected channels
+    num_classes -- number of classes
+    n_ds -- downsampling factor
+    n_ch -- number of channels selected
+    T -- time window length
+    split_ctr -- split number
+    '''
     os.makedirs(f'plot_channels/plots', exist_ok=True)
     background = Image.open(f'plot_channels/64_channel_sharbrough_bg.png')
     for i in channels:
