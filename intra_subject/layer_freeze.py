@@ -20,39 +20,42 @@ def get_layers(layers_to_freeze):
     '''
     freeze = np.array([])
 
-    if layers_to_freeze == 1:
-        freeze = np.append(freeze, fc)
-    if layers_to_freeze == 2:
-        freeze = np.append(freeze, sep_conv_2D)
-        freeze = np.append(freeze, fc)
-    if layers_to_freeze == 3:
+    if layers_unfrozen == 1:
+        freeze = np.append(freeze, input)
+        freeze = np.append(freeze, conv_2D)
         freeze = np.append(freeze, depth_conv_2D)
         freeze = np.append(freeze, sep_conv_2D)
-        freeze = np.append(freeze, fc)
+    if layers_unfrozen == 2:
+        freeze = np.append(freeze, input)
+        freeze = np.append(freeze, conv_2D)
+        freeze = np.append(freeze, depth_conv_2D)
+    if layers_unfrozen == 3:
+        freeze = np.append(freeze, input)
+        freeze = np.append(freeze, conv_2D)
     else:
         pass
 
     return freeze
 
-def freeze_layers(model, layers_to_freeze):
+def freeze_layers(model, layers_unfrozen):
     ''' freeze the specied layers in the model for SS-TL
 
     Keyword arguments:
     model -- the model to modify
-    layers_to_freeze -- array containing number of layers to be frozen
+    layers_unfrozen -- array containing number of layers to be frozen
     '''
-    freeze = get_layers(layers_to_freeze)
+    freeze = get_layers(layers_unfrozen)
     for sub_layer in freeze:
         model.layers[int(sub_layer)].trainable = False
 
-def print_model(model, layers_to_freeze):
+def print_model(model, layers_unfrozen):
     ''' print the unfrozen layers in the model
 
     Keyword arguments:
     model -- the model to modify
-    layers_to_freeze -- array containing number of layers to be frozen
+    layers_unfrozen -- array containing number of layers to be frozen
     '''
-    freeze = get_layers(layers_to_freeze)
+    freeze = get_layers(layers_unfrozen)
     unfrozen = np.arange(16)
     unfrozen = [x for x in unfrozen if (x not in freeze)]
     print("---------------------------------------------")
