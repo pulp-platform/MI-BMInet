@@ -58,13 +58,13 @@ os.makedirs(f'{results_dir}/model', exist_ok=True)
 os.makedirs(f'{results_dir}/plots', exist_ok=True)
 
 # specify number of classses for input data
-num_classes_list = [4]
+num_classes_list = [2,3]
 n_epochs = 100
 num_splits = 3
 
 # data settings
 n_ds_vec = [1] # downsampling factor [1,2,3]
-n_ch_vec = [8] # number of channels [8, 16, 19, 24, 38, 64]
+n_ch_vec = [64] # number of channels [8, 16, 19, 24, 38, 64]
 T_vec = [3] # duration to classify
 
 for num_classes in num_classes_list:

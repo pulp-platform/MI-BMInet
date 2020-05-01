@@ -61,23 +61,6 @@ def freeze_layers(model, layers_unfrozen, verbose = False):
 
     return model
 
-# def print_model(model, layers_unfrozen):
-#     ''' print the unfrozen layers in the model
-#
-#     Keyword arguments:
-#     model -- the model to modify
-#     layers_unfrozen -- array containing number of layers to be unfrozen
-#     '''
-#     freeze = get_layers(layers_unfrozen)
-#     unfrozen = np.arange(16)
-#     unfrozen = [x for x in unfrozen if (x not in freeze)]
-#     print("=============================================")
-#     print("Unfrozen layers:")
-#     print("=============================================")
-#     for sub_layer in unfrozen:
-#         print(model.layers[sub_layer].name)
-#         print("---------------------------------------------")
-
 # def get_layers(model, layers_to_freeze):
 #     ''' get sub-layers for each specified layer
 #
