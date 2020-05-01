@@ -221,6 +221,6 @@ def plot_model_avg(num_classes_list,results_dir,subjects,NO_selected_channels,n_
             split_ctr = split_ctr + 1
 
 
-plot_freeze(64,2)
-plot_freeze(64,3)
-plot_freeze(64,4)
+# plot_freeze(64,2)
+# plot_freeze(64,3)
+# plot_freeze(64,4)

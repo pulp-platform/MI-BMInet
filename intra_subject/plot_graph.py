@@ -213,6 +213,6 @@ def plot_model_avg(num_classes_list,results_dir,subjects,NO_selected_channels,n_
             plt.savefig(f'{results_dir}/plots/avg/loss_avg_{num_classes}_c_model_{sub_split_ctr}.pdf')
             plt.clf()
 
-plot_freeze(64,2)
-plot_freeze(64,3)
-plot_freeze(64,4)
+# plot_freeze(64,2)
+# plot_freeze(64,3)
+# plot_freeze(64,4)
