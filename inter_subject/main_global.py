@@ -57,7 +57,7 @@ os.makedirs(f'{results_dir}/model', exist_ok=True)
 os.makedirs(f'{results_dir}/plots', exist_ok=True)
 
 # specify number of classses for input data
-num_classes_list = [2,3]
+num_classes_list = [4]
 n_epochs = 100
 num_splits = 5
 
@@ -102,6 +102,8 @@ for num_classes in num_classes_list:
 
                     # use sample size
                     SAMPLE_SIZE = np.shape(X_Train_cs)[3]
+
+                    pdb.set_trace()
 
                     train_accu = np.array([])
                     valid_accu = np.array([])

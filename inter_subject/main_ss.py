@@ -64,11 +64,11 @@ subjects = exclude_subjects()
 
 # For channel selection
 NO_channels = 64 # total number of EEG channels
-n_ch_vec = [8] # number of selected channels
+n_ch_vec = [8,16,19,24,38] # number of selected channels
 num_classes_list = [4] # specify number of classses for input data
 
 # For freezing layers
-no_layers_unfrozen = 0 # 1: fc trainable, 2: sep_conv and fc trainable, 3: depth_conv, sep_conv and fc trainable
+no_layers_unfrozen = 3 # 1: fc trainable, 2: sep_conv and fc trainable, 3: depth_conv, sep_conv and fc trainable
 if no_layers_unfrozen < 4 and no_layers_unfrozen > 0:
     freeze_training = True
 else:
@@ -169,6 +169,7 @@ for NO_selected_channels in n_ch_vec:
 
                     K.clear_session()
                     sub_split_ctr = sub_split_ctr + 1
+                    
             split_ctr = split_ctr + 1
 
     # Get average for each subject for all splits and plot
