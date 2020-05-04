@@ -9,11 +9,6 @@
 
 # Misc
 __pycache__/
-/.git/
-._.DS_Store
-._filters.py
-._plot_channels.py
-._main_channel_selection.py
+.git/
 .DS_Store
-._accu_avg_4_c.pdf
-._class4_ds1_nch64_T3_split_0.png
+._*
