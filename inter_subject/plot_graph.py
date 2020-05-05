@@ -235,7 +235,7 @@ def plot_memory_accuracy(n_ch_vec, num_classes, kernel_length, NO_samples, pool_
     color = ['c', 'b', 'g', 'y', 'r', 'm']
     c = 0
 
-    plt.title(f'Memory vs Accuracy ({num_classes} Class, {NO_subjects} Subjects)')
+    plt.title(f'Inter-Subject Memory vs Accuracy ({num_classes} Class, {NO_subjects} Subjects)')
     plt.xlabel('Memory (kB)')
     plt.ylabel('Accuracy')
 
@@ -293,7 +293,7 @@ def plot_ram_accuracy(n_ch_vec, n_ds_vec, T_vec, num_classes):
 
                 plt.scatter(memory, accuracy, s = s[T-1], marker = marker[n_ds-1], linewidth = 1, color=color[c], label = str(n_ch) + 'ch, '+ str(n_ds) + 'ds, T=' + str(T) + 's')
         c += 1
-    plt.title(f'RAM vs Accuracy ({num_classes} Class)')
+    plt.title(f'Inter-Subject RAM vs Accuracy ({num_classes} Class)')
     plt.xlabel('Memory (kB)')
     plt.ylabel('Accuracy')
     plt.legend(fontsize = 4.8, ncol = len(n_ch_vec))

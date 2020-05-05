@@ -1,5 +1,6 @@
 import os
 from PIL import Image
+import matplotlib.pyplot as plt
 
 __author__ = "Tianhong Gan"
 __email__ = "tianhonggan@outlook.com"
@@ -22,6 +23,10 @@ def plot_channels(channels, num_classes, n_ds, n_ch, T, split_ctr):
         img = Image.open(f'plot_channels/channels/{channel}.png')
         background.paste(img, (0, 0), img)
     background.save(f'plot_channels/plots/class{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.png',"PNG")
+
+def plot_heatmap():
+    img = plt.imread(f'plot_channels/64_channel_sharbrough_ori.pdf')
+
 
 ''' make white background transparent '''
 

@@ -48,7 +48,7 @@ def step_decay(epoch):
 lrate = LearningRateScheduler(step_decay)
 
 # Set data parameters
-PATH = "/usr/scratch/badile01/sem20f12/files"
+PATH = "/usr/scratch/badile01/sem20f12/files/"
 # PATH = "/usr/scratch/xavier/herschmi/EEG_data/physionet/"
 
 results_dir=f'global'
@@ -77,8 +77,8 @@ for num_classes in num_classes_list:
 
                 # Load data
                 # X_Train, y_Train = get.get_data(PATH, n_classes=num_classes)
-                # np.savez(PATH+f'{num_classes}class',X_Train = X_Train, y_Train = y_Train)
-                npzfile = np.load(PATH+f'{num_classes}class.npz')
+                # np.savez(PATH+f'{num_classes}class_mi_intra',X_Train = X_Train, y_Train = y_Train)
+                npzfile = np.load(PATH+f'{num_classes}class_mi_intra.npz')
                 X_Train, y_Train = npzfile['X_Train'], npzfile['y_Train']
 
                 # channel selection (archived)
