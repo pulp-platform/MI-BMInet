@@ -29,7 +29,7 @@ from sklearn.model_selection import KFold
 from eeg_reduction import eeg_reduction_cs
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
 #################################################
 #
@@ -63,9 +63,9 @@ n_epochs = 100
 num_splits = 3
 
 # data settings
-n_ds_vec = [1] # downsampling factor [1,2,3]
-n_ch_vec = [64] # number of channels [8, 16, 19, 24, 38, 64]
-T_vec = [3] # duration to classify
+n_ds_vec = [3] # downsampling factor [1,2,3]
+n_ch_vec = [8,16,19,24,38,64] # number of channels [8, 16, 19, 24, 38, 64]
+T_vec = [3,2,1] # duration to classify
 
 for num_classes in num_classes_list:
     for n_ch in n_ch_vec:
