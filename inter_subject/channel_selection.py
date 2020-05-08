@@ -76,24 +76,3 @@ def channel_selection_eegweights_fromss(subject, NO_channels, NO_selected_channe
 
 	print(selected_channels)
 	return selected_channels
-
-def get_eegweights(w):
-	''' ranking the energy of each channel obtained from the set of filter weights by the squared sum, select channels with highest energy usage
-
-	 Keyword arguments:
-	 w -- set of filter weights of size [64, 1, 8, 2]
-
-	Return: eeg weights of each channel
-	'''
-	w_sum = np.zeros(64)
-
-	index = 0 # iterator
-
-	for channel in w:
-		for column in channel:
-			for depth in column:
-				for i in depth:
-					w_sum[index] += np.sqrt(i**2) # set channel energy
-		index+=1
-
-	return w_sum
