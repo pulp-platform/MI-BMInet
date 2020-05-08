@@ -214,12 +214,13 @@ def plot_model_avg(num_classes_list,results_dir,subjects,NO_selected_channels,n_
             plt.savefig(f'{results_dir}/plots/avg/loss_avg_{num_classes}_c_model_{sub_split_ctr}.pdf')
             plt.clf()
 
-def plot_memory_accuracy(n_ch_vec, num_classes, kernel_length, NO_samples, pool_length, NO_subjects):
+def plot_flash_accuracy(n_ch_vec, num_classes, kernel_length, NO_samples, pool_length, NO_subjects):
     '''
-    plot memory vs accuracy scatterplot for all number of selected channels and layer freezing
+    plot flash memory vs accuracy scatterplot for all number of selected channels and layer freezing
     '''
     os.makedirs(f'ss/mem_acc', exist_ok=True)
     color = ['c', 'b', 'g', 'y', 'r', 'm']
+    marker = ['x', 'o', 's', '^']
     c = 0
 
     plt.title(f'Intra-Subject Memory vs Accuracy ({num_classes} Class, {NO_subjects} Subjects)')
@@ -227,30 +228,32 @@ def plot_memory_accuracy(n_ch_vec, num_classes, kernel_length, NO_samples, pool_
     plt.ylabel('Accuracy')
 
     for n_ch in n_ch_vec:
-        accuracy = np.array([])
-        memory = np.array([])
-        if NO_subjects != 1:
-            for i in range(3):
-                i = i + 1
-                NO_frozen_layers = 4 - i
+        for i in range(3):
+            i = i + 1
+            NO_frozen_layers = 4 - i
 
-                data = np.loadtxt(f'ss/freeze{i}/{n_ch}ch/stats/avg/valid_accu_v1_class_{num_classes}_ss_retrained_avg.csv')
-                accuracy = np.append(accuracy, data[-1])
+            data = np.loadtxt(f'ss/freeze{i}/{n_ch}ch/stats/avg/valid_accu_v1_class_{num_classes}_ss_retrained_avg.csv')
+            accuracy = data[-1]
+            NO_parameters = get_parameters(kernel_length=kernel_length, NO_selected_channels=n_ch, NO_samples=NO_samples, pool_length=pool_length, NO_classes=num_classes, NO_subjects=NO_subjects, NO_frozen_layers=NO_frozen_layers)
+            memory = get_sizeInBytes(NO_parameters, 'kb')
+            plt.scatter(memory, accuracy, s = 15, marker = marker[i], linewidth = 1, color=color[c], label = str(n_ch) + ' channels, ' + str(NO_frozen_layers) + ' frozen layers')
 
-                NO_parameters = get_parameters(kernel_length=kernel_length, NO_selected_channels=n_ch, NO_samples=NO_samples, pool_length=pool_length, NO_classes=num_classes, NO_subjects=NO_subjects, NO_frozen_layers=NO_frozen_layers)
-                size = get_sizeInBytes(NO_parameters, 'kb')
-                memory = np.append(memory, size)
         data = np.loadtxt(f'ss/{n_ch}ch/stats/avg/valid_accu_v1_class_{num_classes}_ss_retrained_avg.csv')
-        accuracy = np.append(accuracy, data[-1])
-
+        accuracy = data[-1]
         NO_parameters = get_parameters(kernel_length=kernel_length, NO_selected_channels=n_ch, NO_samples=NO_samples, pool_length=pool_length, NO_classes=num_classes, NO_subjects=NO_subjects, NO_frozen_layers=0)
-        size = get_sizeInBytes(NO_parameters, 'kb')
-        memory = np.append(memory, size)
+        memory = get_sizeInBytes(NO_parameters, 'kb')
+        plt.scatter(memory, accuracy, s = 15, marker = marker[0], linewidth = 2, color=color[c], label = str(n_ch) + ' channels, 0 frozen layers')
 
-        plt.scatter(memory, accuracy, s = 15, marker = 'x', linewidth = 1, color=color[c], label = str(n_ch) + ' channels')
+        data = np.loadtxt(f'global/stats/valid_accu_class_{num_classes}_ds1_nch{n_ch}_T3_avg.csv')
+        accuracy = data[-1]
+        NO_parameters = get_parameters(kernel_length=kernel_length, NO_selected_channels=n_ch, NO_samples=NO_samples, pool_length=pool_length, NO_classes=num_classes, NO_subjects=1, NO_frozen_layers=0)
+        memory = get_sizeInBytes(NO_parameters, 'kb')
+        plt.scatter(memory, accuracy, s = 20, marker = '+', linewidth = 2, color=color[c], label = str(n_ch) + ' channels, global model')
+
         c += 1
+    # plt.xscale('log')
     plt.grid()
-    plt.legend(fontsize = 'small')
+    plt.legend(fontsize = 4, ncol = 3)
     plt.savefig(f'ss/mem_acc/memory_vs_accuracy_{num_classes}_class_{NO_subjects}_subjects.pdf')
     plt.clf()
 
@@ -278,18 +281,18 @@ def plot_ram_accuracy(n_ch_vec, n_ds_vec, T_vec, num_classes):
                 feature_map_size = get_featureMapSize(NO_samples=n_s,NO_selected_channels=n_ch,pool_length=poolLength,NO_classes=num_classes)
                 memory = get_sizeInBytes(feature_map_size, 'kb')
 
-                plt.scatter(memory, accuracy, s = s[T-1], marker = marker[n_ds-1], linewidth = 1, color=color[c], label = str(n_ch) + 'ch, '+ str(n_ds) + 'ds, T=' + str(T) + 's')
+                plt.scatter(memory, accuracy, s = s[n_ds-1], marker = marker[T-1], linewidth = 1, color=color[c], label = str(n_ch) + 'ch, '+ str(n_ds) + 'ds, T=' + str(T) + 's')
         c += 1
     plt.title(f'Intra-Subject RAM vs Accuracy ({num_classes} Class)')
     plt.xlabel('Memory (kB)')
     plt.ylabel('Accuracy')
-    plt.legend(fontsize = 4.8, ncol = len(n_ch_vec))
+    plt.legend(fontsize = 4.5, ncol = len(n_ch_vec))
     plt.grid()
     plt.tight_layout()
     plt.show()
     plt.savefig(f'global/ram_acc/ram_vs_accuracy_class_{num_classes}.pdf')
 
-# plot_memory_accuracy([8,16,19,24,38,64], 4, 128, 480, 8, 1)
+# plot_flash_accuracy([8,16,19,24,38,64], 4, 128, 480, 8, 1)
 plot_ram_accuracy([8,16,19,24,38], [1,2,3], [1,2,3], 4)
 
 # plot_freeze(64,2)

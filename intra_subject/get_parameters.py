@@ -26,14 +26,14 @@ def get_parameters(kernel_length=128, NO_selected_channels=64, NO_samples=480, p
 
 def get_featureMapSize(NO_samples=480,NO_selected_channels=64,pool_length=8,NO_classes=4):
     '''
-    get feature map size of all four layers
+    get max. feature map size at any point in time (max number of stored features is the sum of the input and first layer)
     '''
     n1 = NO_samples * NO_selected_channels * 8
     n2 = (NO_samples / pool_length) * 16
     n3 = ((NO_samples / pool_length) / 8) * 16
     n4 = NO_classes
 
-    size = n1 + n2 + n3 + n4
+    size = n1 + n2
 
     return size
 
