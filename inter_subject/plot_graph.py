@@ -314,8 +314,9 @@ def plot_ram_accuracy(n_ch_vec, n_ds_vec, T_vec, num_classes):
     plt.tight_layout()
     plt.show()
     plt.savefig(f'global/ram_acc/ram_vs_accuracy_class_{num_classes}.pdf')
+    plt.clf()
 
-plot_flash_accuracy([8,16,19,24,38,64], 2, 128, 480, 8, 105)
+# plot_flash_accuracy([8,16,19,24,38,64], 2, 128, 480, 8, 105)
 # plot_ram_accuracy([8,16,19,24,38], [1,2,3], [1,2,3], 4)
 
 # plot_freeze(64,2)

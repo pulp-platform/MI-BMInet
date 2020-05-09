@@ -278,7 +278,7 @@ def plot_ram_accuracy(n_ch_vec, n_ds_vec, T_vec, num_classes):
                 feature_map_size = get_featureMapSize(NO_samples=n_s,NO_selected_channels=n_ch,pool_length=poolLength,NO_classes=num_classes)
                 memory = get_sizeInBytes(feature_map_size, 'kb')
 
-                plt.scatter(memory, accuracy, s = s[T-1], marker = marker[n_ds-1], linewidth = 1, color=color[c], label = str(n_ch) + 'ch, '+ str(n_ds) + 'ds, T=' + str(T) + 's')
+                plt.scatter(memory, accuracy, s = s[n_ds-1], marker = marker[T-1], linewidth = 1, color=color[c], label = str(n_ch) + 'ch, '+ str(n_ds) + 'ds, T=' + str(T) + 's')
         c += 1
     plt.axvline(x=128,linewidth=1,linestyle='dashed',color='black')
     plt.title(f'Intra-Subject (MM) RAM vs Accuracy ({num_classes} Class)')
@@ -289,9 +289,41 @@ def plot_ram_accuracy(n_ch_vec, n_ds_vec, T_vec, num_classes):
     plt.tight_layout()
     plt.show()
     plt.savefig(f'global/ram_acc/ram_vs_accuracy_class_{num_classes}.pdf')
+    plt.clf()
+
+def plot_avg_global(num_classes, n_ch, T, n_ds, results_dir):
+    os.makedirs(f'{results_dir}/plots', exist_ok=True)
+
+    train_accu = np.loadtxt(f'{results_dir}/stats/train_accu_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_avg.csv')
+    valid_accu = np.loadtxt(f'{results_dir}/stats/valid_accu_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_avg.csv')
+    train_loss = np.loadtxt(f'{results_dir}/stats/train_loss_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_avg.csv')
+    valid_loss = np.loadtxt(f'{results_dir}/stats/valid_loss_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_avg.csv')
+
+    # Plot Accuracy
+    plt.plot(train_accu, label='Training')
+    plt.plot(valid_accu, label='Validation')
+    plt.title(f'Intra-Subject MM Global Accuracy (classes={num_classes}, {n_ch}ch, ds={n_ds}, T={T}s)')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    plt.grid()
+    plt.savefig(f'{results_dir}/plots/accu_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_avg.pdf')
+    plt.clf()
+
+    # Plot Loss
+    plt.plot(train_loss, label='Training')
+    plt.plot(valid_loss, label='Validation')
+    plt.title(f'Intra-Subject MM Global Loss (classes={num_classes}, {n_ch}ch, ds={n_ds}, T={T}s)')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid()
+    plt.savefig(f'{results_dir}/plots/loss_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_avg.pdf')
+    plt.clf()
 
 # plot_memory_accuracy([8,16,19,24,38,64], 4, 128, 480, 8, 1)
-plot_ram_accuracy([8,16,19,24,38,64], [1,2,3], [1,2,3], 4)
+# plot_ram_accuracy([8,16,19,24,38,64], [1,2,3], [1,2,3], 4)
+# plot_avg_global(4,64,3,1,'global')
 
 # plot_freeze(64,2)
 # plot_freeze(64,3)

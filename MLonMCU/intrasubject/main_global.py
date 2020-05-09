@@ -7,10 +7,9 @@ import numpy as np
 import os
 import pdb # pdb.set_trace()
 
-# our functions to get and present data
+# our functions to get data
 import pyedflib
 import get_data as get
-import matplotlib.pyplot as plt
 
 # Tensorflow part
 from tensorflow.keras import utils as np_utils
@@ -24,6 +23,10 @@ from keras import backend as K
 # EEGNet models
 import models as models
 from sklearn.model_selection import KFold
+
+# for plotting graphs
+import matplotlib.pyplot as plt
+from plot_graph import plot_avg_global
 
 # for channel selection
 from eeg_reduction import eeg_reduction_cs
@@ -167,7 +170,6 @@ for num_classes in num_classes_list:
                     train_loss += train_loss_step
                     valid_loss += valid_loss_step
 
-
                 train_accu = train_accu/num_splits
                 valid_accu = valid_accu/num_splits
                 train_loss = train_loss/num_splits
@@ -179,3 +181,5 @@ for num_classes in num_classes_list:
                 np.savetxt(f'{results_dir}/stats/valid_accu_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_avg.csv', valid_accu)
                 np.savetxt(f'{results_dir}/stats/train_loss_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_avg.csv', train_loss)
                 np.savetxt(f'{results_dir}/stats/valid_loss_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_avg.csv', valid_loss)
+
+                plot_avg_global(num_classes,n_ch,T,n_ds,results_dir)
