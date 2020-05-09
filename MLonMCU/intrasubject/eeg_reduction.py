@@ -33,6 +33,15 @@ def eeg_reduction_cs(x, split_ctr, n_ds = 1, n_ch = 64, T = 3, fs = 160, num_cla
 	Outputs
 	-------
 	'''
+	# # original selected channels
+	# if n_ch == 64:
+	# 	channels = np.arange(0,n_ch)
+	# elif n_ch == 38:
+	# 	channels = np.array([0,2,4,6,8,10,12,14,16,18,20,21,22,23,24,26,28,29,31,33,35,37,40,41,42,43,46,48,50,52,54,55,57,59,60,61,62,63])
+	# elif n_ch == 19:
+	# 	channels = np.array([8,10,12,21,23,29,31,33,35,37,40,41,46,48,50,52,54,60,62])
+	# elif n_ch == 8:
+	# 	channels = np.array([8,10,12,25,27,48,52,57])
 
 	if n_ch == 64:
 		channels = np.arange(0,64)
