@@ -259,11 +259,11 @@ def plot_flash_accuracy(n_ch_vec, num_classes, kernel_length, NO_samples, pool_l
 
 ''' --- global --- '''
 
-def plot_ram_accuracy(n_ch_vec, n_ds_vec, T_vec, num_classes):
+def plot_ram_accuracy(results_dir, n_ch_vec, n_ds_vec, T_vec, num_classes):
     '''
     plot RAM vs accuracy scatterplot for all number of selected channels, downsampling and time windows
     '''
-    os.makedirs(f'global/ram_acc', exist_ok=True)
+    os.makedirs(f'{results_dir}/plots/ram_acc', exist_ok=True)
     marker = ['o', 's', '^']
     s = [5, 15, 25]
     color = ['c', 'b', 'g', 'y', 'r', 'm']
@@ -275,7 +275,7 @@ def plot_ram_accuracy(n_ch_vec, n_ds_vec, T_vec, num_classes):
                 poolLength = int(np.ceil(8/n_ds)) # pool length
                 n_s = int(np.ceil(T*160/n_ds)) # number of time samples
 
-                data = np.loadtxt(f'global/stats/valid_accu_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_avg.csv')
+                data = np.loadtxt(f'{results_dir}/stats/valid_accu_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_avg.csv')
                 accuracy = data[-1]
 
                 feature_map_size = get_featureMapSize(NO_samples=n_s,NO_selected_channels=n_ch,pool_length=poolLength,NO_classes=num_classes)
@@ -290,11 +290,11 @@ def plot_ram_accuracy(n_ch_vec, n_ds_vec, T_vec, num_classes):
     plt.grid()
     plt.tight_layout()
     plt.show()
-    plt.savefig(f'global/ram_acc/ram_vs_accuracy_class_{num_classes}.pdf')
+    plt.savefig(f'{results_dir}/plots/ram_acc/ram_vs_accuracy_class_{num_classes}.pdf')
     plt.clf()
 
 # plot_flash_accuracy([8,16,19,24,38,64], 4, 128, 480, 8, 1)
-# plot_ram_accuracy([8,16,19,24,38], [1,2,3], [1,2,3], 4)
+# plot_ram_accuracy('global', [8,16,19,24,38], [1,2,3], [1,2,3], 4)
 
 # plot_freeze(64,2)
 # plot_freeze(64,3)
