@@ -29,7 +29,7 @@ from sklearn.model_selection import KFold
 from eeg_reduction import eeg_reduction_cs
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 #################################################
 #
@@ -50,7 +50,7 @@ lrate = LearningRateScheduler(step_decay)
 # Set data parameters
 PATH = "/usr/scratch/xavier/herschmi/EEG_data/physionet/"
 
-results_dir=f'global'
+results_dir=f'global/test'
 #os.makedirs(results_dir, exist_ok=True)
 os.makedirs(f'{results_dir}/stats', exist_ok=True)
 os.makedirs(f'{results_dir}/model', exist_ok=True)
@@ -62,9 +62,9 @@ n_epochs = 100
 num_splits = 5
 
 # data settings
-n_ds_vec = [2] # downsampling factor [1,2,3]
-n_ch_vec = [38] # number of channels [8, 16, 19, 24, 38, 64]
-T_vec = [2,3] # duration to classify
+n_ds_vec = [1,2,3] # downsampling factor [1,2,3]
+n_ch_vec = [8,16,19,24,38] # number of channels [8, 16, 19, 24, 38, 64]
+T_vec = [3,2,1] # duration to classify
 
 for num_classes in num_classes_list:
     for n_ch in n_ch_vec:
@@ -98,7 +98,7 @@ for num_classes in num_classes_list:
                 split_ctr = 0
                 for train, test in kf.split(X_Train_real, y_Train):
                     # channel selection
-                    X_Train_cs = eeg_reduction_cs(X_Train_real, split_ctr, n_ds = n_ds, n_ch = n_ch, T = T, fs = 160, num_classes = num_classes)
+                    X_Train_cs = eeg_reduction_cs(X_Train_real, split_ctr, results_dir, n_ds = n_ds, n_ch = n_ch, T = T, fs = 160, num_classes = num_classes)
 
                     # use sample size
                     SAMPLE_SIZE = np.shape(X_Train_cs)[3]

@@ -40,7 +40,7 @@ def channel_selection_eegweights(w, NO_channels, NO_selected_channels):
 
 	return np.sort(selected_channels).astype(int)
 
-def channel_selection_eegweights_fromglobal(NO_channels, NO_selected_channels, NO_classes, split_ctr):
+def channel_selection_eegweights_fromglobal(NO_channels, NO_selected_channels, NO_classes, split_ctr, n_ds, T):
 	''' select channels with highest energy usage from eegnet weights - fold specific from global model
 
 	 Keyword arguments:
@@ -51,7 +51,7 @@ def channel_selection_eegweights_fromglobal(NO_channels, NO_selected_channels, N
 
 	Return: 'NO_selected_channels' channels with the highest energy usage in fold specific model
 	'''
-	model_global = load_model(f'global/model/global_class_{NO_classes}_ds1_nch64_T3_split_{split_ctr}_v1.h5')
+	model_global = load_model(f'global/model/global_class_{NO_classes}_ds{n_ds}_nch64_T{T}_split_{split_ctr}_v1.h5')
 	w = model_global.layers[3].get_weights()[0] ** 2
 	selected_channels = channel_selection_eegweights(w, NO_channels, NO_selected_channels)
 

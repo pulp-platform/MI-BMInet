@@ -291,3 +291,12 @@ def read_data(subjects , runs, PATH, long=False):
     y = np.concatenate((y,y_fold3))
 
     return X, y
+
+def norm_data(x, train):
+    for channel in range(64):
+        mean = np.mean(x[train][:,:,channel,:])
+        std = np.std(x[train][:,:,channel,:])
+
+        x[:,:,channel,:] = (x[:,:,channel,:] - mean) / std
+
+    return x

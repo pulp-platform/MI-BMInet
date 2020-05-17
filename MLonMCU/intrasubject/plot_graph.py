@@ -322,7 +322,7 @@ def plot_avg_global(num_classes, n_ch, T, n_ds, results_dir):
     plt.clf()
 
 # plot_memory_accuracy([8,16,19,24,38,64], 4, 128, 480, 8, 1)
-# plot_ram_accuracy('global', [8,16,19,24,38,64], [1,2,3], [1,2,3], 4)
+# plot_ram_accuracy('global/test', [8,16,19,24,38], [1,2,3], [1,2,3], 4)
 # plot_avg_global(4,64,3,1,'global')
 
 # plot_freeze(64,2)

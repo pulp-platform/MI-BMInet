@@ -29,7 +29,7 @@ from sklearn.model_selection import KFold
 from eeg_reduction import eeg_reduction_cs
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 #################################################
 #
@@ -51,21 +51,21 @@ lrate = LearningRateScheduler(step_decay)
 PATH = "/usr/scratch/badile01/sem20f12/files/"
 # PATH = "/usr/scratch/xavier/herschmi/EEG_data/physionet/"
 
-results_dir=f'global'
+results_dir=f'global/test'
 #os.makedirs(results_dir, exist_ok=True)
 os.makedirs(f'{results_dir}/stats', exist_ok=True)
 os.makedirs(f'{results_dir}/model', exist_ok=True)
 os.makedirs(f'{results_dir}/plots', exist_ok=True)
 
 # specify number of classses for input data
-num_classes_list = [2,3]
+num_classes_list = [4]
 n_epochs = 100
 num_splits = 3
 
 # data settings
-n_ds_vec = [1] # downsampling factor [1,2,3]
-n_ch_vec = [64] # number of channels [8, 16, 19, 24, 38, 64]
-T_vec = [3] # duration to classify
+n_ds_vec = [3] # downsampling factor [1,2,3]
+n_ch_vec = [38] # number of channels [8, 16, 19, 24, 38, 64]
+T_vec = [1] # duration to classify
 
 for num_classes in num_classes_list:
     for n_ch in n_ch_vec:
@@ -98,6 +98,8 @@ for num_classes in num_classes_list:
 
                 split_ctr = 0
                 for train, test in kf.split(X_Train_real, y_Train):
+                    # X_Train_real = get.norm_data(X_Train_real, train)
+
                     # channel selection
                     X_Train_cs = eeg_reduction_cs(X_Train_real, split_ctr, n_ds = n_ds, n_ch = n_ch, T = T, fs = 160, num_classes = num_classes)
 

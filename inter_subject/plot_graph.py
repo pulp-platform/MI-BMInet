@@ -304,7 +304,7 @@ def plot_ram_accuracy(results_dir,n_ch_vec, n_ds_vec, T_vec, num_classes):
         c += 1
 
     plt.axvline(x=90,linewidth=1,linestyle='dashed',color='black')
-    plt.axvline(x=300,linewidth=1,linestyle='dashed',color='black')
+    plt.axvline(x=290,linewidth=1,linestyle='dashed',color='black')
 
     plt.title(f'Inter-Subject RAM vs Accuracy ({num_classes} Class)')
     plt.xlabel('Memory (kB)')
@@ -317,7 +317,7 @@ def plot_ram_accuracy(results_dir,n_ch_vec, n_ds_vec, T_vec, num_classes):
     plt.clf()
 
 # plot_flash_accuracy([8,16,19,24,38,64], 2, 128, 480, 8, 105)
-# plot_ram_accuracy('global', [8,16,19,24,38], [1,2,3], [1,2,3], 4)
+# plot_ram_accuracy('global/test', [8,16,19,24,38], [1,2,3], [1,2,3], 4)
 
 # plot_freeze(64,2)
 # plot_freeze(64,3)

@@ -281,8 +281,18 @@ def plot_ram_accuracy(results_dir, n_ch_vec, n_ds_vec, T_vec, num_classes):
                 feature_map_size = get_featureMapSize(NO_samples=n_s,NO_selected_channels=n_ch,pool_length=poolLength,NO_classes=num_classes)
                 memory = get_sizeInBytes(feature_map_size, 'kb')
 
+                if (n_ds == 3 and n_ch == 38): # plot original chosen configurations
+                    if T == 1:
+                        plt.scatter(memory, 0.6480, s = 20, marker = 'x', linewidth = 2, color='black')
+                    if T == 2:
+                        plt.scatter(memory, 0.6559, s = 20, marker = 'x', linewidth = 2, color='black')
+
                 plt.scatter(memory, accuracy, s = s[n_ds-1], marker = marker[T-1], linewidth = 1, color=color[c], label = str(n_ch) + 'ch, '+ str(n_ds) + 'ds, T=' + str(T) + 's')
         c += 1
+
+    plt.axvline(x=90,linewidth=1,linestyle='dashed',color='black')
+    plt.axvline(x=290,linewidth=1,linestyle='dashed',color='black')
+
     plt.title(f'Intra-Subject RAM vs Accuracy ({num_classes} Class)')
     plt.xlabel('Memory (kB)')
     plt.ylabel('Accuracy')
@@ -294,7 +304,7 @@ def plot_ram_accuracy(results_dir, n_ch_vec, n_ds_vec, T_vec, num_classes):
     plt.clf()
 
 # plot_flash_accuracy([8,16,19,24,38,64], 4, 128, 480, 8, 1)
-# plot_ram_accuracy('global', [8,16,19,24,38], [1,2,3], [1,2,3], 4)
+# plot_ram_accuracy('global/test', [8,16,19,24,38], [1,2,3], [1,2,3], 4)
 
 # plot_freeze(64,2)
 # plot_freeze(64,3)

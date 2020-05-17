@@ -33,7 +33,7 @@ def get_featureMapSize(NO_samples=480,NO_selected_channels=64,pool_length=8,NO_c
     n3 = ((NO_samples / pool_length) / 8) * 16
     n4 = NO_classes
 
-    size = n1 + n2 + n3 + n4
+    size = n1 + n2
 
     return size
 

@@ -66,6 +66,8 @@ subjects = exclude_subjects()
 NO_channels = 64 # total number of EEG channels
 n_ch_vec = [8,16,19,24,38] # number of selected channels
 num_classes_list = [4] # specify number of classses for input data
+n_ds = 1
+T = 3
 
 # For freezing layers
 no_layers_unfrozen = 3 # 1: fc trainable, 2: sep_conv and fc trainable, 3: depth_conv, sep_conv and fc trainable
@@ -81,6 +83,7 @@ verbose = 2 # verbosity for data loader and keras: 0 minimum
 
 # Set data path
 PATH = "/usr/scratch/badile01/sem20f12/files"
+results_dir_global = 'global'
 
 for NO_selected_channels in n_ch_vec:
     # Make necessary directories for files
@@ -102,7 +105,7 @@ for NO_selected_channels in n_ch_vec:
 
         for train_global, test_global in kf_global.split(subjects):
             # Select channels for this fold
-            selected_channels = channel_selection_eegweights_fromglobal(NO_channels, NO_selected_channels, num_classes, split_ctr)
+            selected_channels = channel_selection_eegweights_fromglobal(NO_channels, NO_selected_channels, num_classes, split_ctr, n_ds, T, 'results_dir_global)
 
             for sub_idx in test_global:
                 subject = subjects[sub_idx]
@@ -169,7 +172,7 @@ for NO_selected_channels in n_ch_vec:
 
                     K.clear_session()
                     sub_split_ctr = sub_split_ctr + 1
-                    
+
             split_ctr = split_ctr + 1
 
     # Get average for each subject for all splits and plot
