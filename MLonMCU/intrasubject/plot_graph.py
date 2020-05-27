@@ -280,7 +280,7 @@ def plot_ram_accuracy(results_dir, n_ch_vec, n_ds_vec, T_vec, num_classes):
 
                 plt.scatter(memory, accuracy, s = s[n_ds-1], marker = marker[T-1], linewidth = 1, color=color[c], label = str(n_ch) + 'ch, '+ str(n_ds) + 'ds, T=' + str(T) + 's')
         c += 1
-    plt.axvline(x=128,linewidth=1,linestyle='dashed',color='black')
+    plt.axvline(x=90,linewidth=1,linestyle='dashed',color='black')
     plt.title(f'Intra-Subject (MM) RAM vs Accuracy ({num_classes} Class)')
     plt.xlabel('Memory (kB)')
     plt.ylabel('Accuracy')

@@ -1,8 +1,5 @@
-# TODO: Deep ConvNet
-# TODO: Shallow ConvNet
-# TODO: Hybrid ConvNet
-# TODO: Residual ConvNet
-# TODO: Own Design - LSTM?
+# Copyright (c) 2020 ETH Zurich, Xiaying Wang, Michael Hersche, Batuhan Toemekce, Burak Kaya, Michele Magno, Luca Benini
+# Modified for MCU use by Tianhong Gan
 
 from keras.models import Model
 from keras.layers.core import Dense, Activation
@@ -21,7 +18,8 @@ from tensorflow.keras.constraints import max_norm
 ###################################################################
 
 def EEGNet(nb_classes, Chans=64, Samples=128, regRate=.25,
-			   dropoutRate=0.1, kernLength=128,poolLength=8, numFilters=8, dropoutType='Dropout'):
+			   dropoutRate=0.1, kernLength=128,poolLength=8,
+			   numFilters=8, dropoutType='Dropout'):
 	"""
 
 	Requires Tensorflow >= 1.5 and Keras >= 2.1.3
@@ -58,37 +56,30 @@ def EEGNet(nb_classes, Chans=64, Samples=128, regRate=.25,
 		raise ValueError('dropoutType must be one of SpatialDropout2D '
 						 'or Dropout, passed as a string.')
 
-	input1   = Input(shape = (1, Chans, Samples))
+	input1   = Input(shape = (Chans, Samples,1))
 
 	##################################################################
-	''' layer one '''
 	block1       = Conv2D(F1, (1, kernLength), padding = 'same',
-									data_format = 'channels_first',
-								   input_shape = (1, Chans, Samples),
+								   input_shape = (Chans, Samples,1),
 								   use_bias = False)(input1)
-	block1       = BatchNormalization(axis = 1)(block1)
+	block1       = BatchNormalization()(block1)
 
-	''' layer two '''
 	block1       = DepthwiseConv2D((Chans, 1), use_bias = False,
-									data_format = 'channels_first',
 								   depth_multiplier = D,
 								   depthwise_constraint = max_norm(1.))(block1)
-	block1       = BatchNormalization(axis = 1)(block1)
+	block1       = BatchNormalization()(block1)
 	block1       = Activation('elu')(block1)
-	block1       = AveragePooling2D((1, poolLength),data_format = 'channels_first')(block1) # changed from 4 to 8
+	block1       = AveragePooling2D((1, poolLength))(block1) # changed from 4 to 8
 	block1       = dropoutType(dropoutRate)(block1)
 
-	''' layer three '''
 	block2       = SeparableConv2D(F2, (1, 16),
 								   use_bias = False,
-								   data_format = 'channels_first',
 								   padding = 'same')(block1)
-	block2       = BatchNormalization(axis = 1)(block2)
+	block2       = BatchNormalization()(block2)
 	block2       = Activation('elu')(block2)
-	block2       = AveragePooling2D((1, 8),data_format = 'channels_first')(block2)
+	block2       = AveragePooling2D((1, 8))(block2)
 	block2       = dropoutType(dropoutRate)(block2)
 
-	''' layer four '''
 	flatten      = Flatten(name = 'flatten')(block2)
 
 	dense        = Dense(nb_classes, name = 'dense',

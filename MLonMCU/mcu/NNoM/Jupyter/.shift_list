@@ -1,0 +1,1 @@
+{'input_1': 7, 'conv2d_1': 4, 'batch_normalization_1': 4, 'depthwise_conv2d_1': 4, 'batch_normalization_2': 4, 'activation_1': 4, 'average_pooling2d_1': 4, 'dropout_1': 4, 'separable_conv2d_1': 2, 'batch_normalization_3': 2, 'activation_2': 2, 'average_pooling2d_2': 2, 'dropout_2': 2, 'flatten': 2, 'dense': 4, 'softmax': 7}

@@ -1,0 +1,19 @@
+!SESSION 2020-05-17 15:01:14.335 -----------------------------------------------
+eclipse.buildId=Version 1.3.1
+java.version=11.0.1
+java.vendor=Oracle Corporation
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_GB
+Framework arguments:  -keyring /Users/tian/.eclipse_keyring
+Command-line arguments:  -os macosx -ws cocoa -arch x86_64 -keyring /Users/tian/.eclipse_keyring
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2020-05-17 15:01:28.567
+!MESSAGE Log4j initialized with config file /Users/tian/Documents/ETH/MLonMCU/S7/validation/.metadata/.log4j.xml
+
+!ENTRY org.eclipse.core.net 1 0 2020-05-17 15:01:29.156
+!MESSAGE System property http.nonProxyHosts has been set to local|*.local|169.254/16|*.169.254/16 by an external source. This value will be overwritten using the values from the preferences
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2020-05-17 15:01:31.599
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 4 4 2020-05-17 15:01:32.035
+!MESSAGE com.st.stm32cube.ide.mcu.ide/META-INF/version/build_ref file not found, build reference will not be reported into properties

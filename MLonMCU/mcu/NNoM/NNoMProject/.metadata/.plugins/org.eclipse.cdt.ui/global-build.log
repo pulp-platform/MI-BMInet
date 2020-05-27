@@ -1,0 +1,32 @@
+21:16:46 **** Clean-only build of configuration Debug for project CubeIDE ****
+make -j7 clean 
+makefile:44: *** multiple target patterns.  Stop.
+"make -j7 clean" terminated with exit code 2. Build might be incomplete.
+21:16:46 **** Build of configuration Debug for project CubeIDE ****
+make -j7 all 
+arm-none-eabi-size   CubeIDE.elf 
+   text	   data	    bss	    dec	    hex	filename
+  77976	    484	   4900	  83360	  145a0	CubeIDE.elf
+Finished building: default.size.stdout
+ 
+21:16:57 **** Incremental Build of configuration Debug for project CubeIDE ****
+make -j7 all 
+arm-none-eabi-size   CubeIDE.elf 
+   text	   data	    bss	    dec	    hex	filename
+  77976	    484	   4900	  83360	  145a0	CubeIDE.elf
+Finished building: default.size.stdout
+ 
+21:17:16 **** Incremental Build of configuration Debug for project CubeIDE ****
+make -j7 all 
+arm-none-eabi-size   CubeIDE.elf 
+   text	   data	    bss	    dec	    hex	filename
+  77976	    484	   4900	  83360	  145a0	CubeIDE.elf
+Finished building: default.size.stdout
+ 
+21:31:14 **** Incremental Build of configuration Debug for project CubeIDE ****
+make -j7 all 
+arm-none-eabi-size   CubeIDE.elf 
+   text	   data	    bss	    dec	    hex	filename
+  77976	    484	   4900	  83360	  145a0	CubeIDE.elf
+Finished building: default.size.stdout
+ 
