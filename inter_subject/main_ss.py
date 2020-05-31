@@ -27,6 +27,7 @@ from sklearn.model_selection import StratifiedKFold
 
 # for channel selection
 from channel_selection import channel_selection_eegweights_fromglobal
+from eeg_reduction import eeg_reduction_cs
 
 # layer selection
 from layer_freeze import freeze_layers
@@ -64,13 +65,14 @@ subjects = exclude_subjects()
 
 # For channel selection
 NO_channels = 64 # total number of EEG channels
-n_ch_vec = [8,16,19,24,38] # number of selected channels
+n_ch_vec = [16] # number of selected channels
 num_classes_list = [4] # specify number of classses for input data
-n_ds = 1
+n_ds = 3
 T = 3
+fs = 160
 
 # For freezing layers
-no_layers_unfrozen = 3 # 1: fc trainable, 2: sep_conv and fc trainable, 3: depth_conv, sep_conv and fc trainable
+no_layers_unfrozen = 0 # 1: fc trainable, 2: sep_conv and fc trainable, 3: depth_conv, sep_conv and fc trainable
 if no_layers_unfrozen < 4 and no_layers_unfrozen > 0:
     freeze_training = True
 else:
@@ -83,7 +85,7 @@ verbose = 2 # verbosity for data loader and keras: 0 minimum
 
 # Set data path
 PATH = "/usr/scratch/badile01/sem20f12/files"
-results_dir_global = 'global'
+results_dir_global = 'global/test'
 
 for NO_selected_channels in n_ch_vec:
     # Make necessary directories for files
@@ -104,22 +106,20 @@ for NO_selected_channels in n_ch_vec:
         split_ctr = 0
 
         for train_global, test_global in kf_global.split(subjects):
-            # Select channels for this fold
-            selected_channels = channel_selection_eegweights_fromglobal(NO_channels, NO_selected_channels, num_classes, split_ctr, n_ds, T, 'results_dir_global)
 
             for sub_idx in test_global:
                 subject = subjects[sub_idx]
                 X_sub, y_sub = get.get_data(PATH, n_classes=num_classes, subjects_list=[subject])
                 X_sub = np.expand_dims(X_sub, axis=1)
                 y_sub_cat = np_utils.to_categorical(y_sub)
+                X_sub = eeg_reduction_cs(X_sub, split_ctr, results_dir_global, n_ds, NO_selected_channels, T, fs, num_classes)
                 SAMPLE_SIZE = np.shape(X_sub)[3]
                 kf_subject = StratifiedKFold(n_splits=4, shuffle=True, random_state=42)
-                X_sub = X_sub[:,:,selected_channels,:]
                 sub_split_ctr = 0
 
                 for train_sub, test_sub in kf_subject.split(X_sub, y_sub):
                     print(f'N_Classes:{num_classes}, Model: {split_ctr} \n Subject: {subject:03d}, Split: {sub_split_ctr}')
-                    model = load_model(f'global/model/global_class_{num_classes}_ds1_nch{NO_selected_channels}_T3_split_{split_ctr}_v1.h5') # SS-TL from global model
+                    model = load_model(f'{results_dir_global}/model/global_class_{num_classes}_ds{n_ds}_nch{NO_selected_channels}_T{T}_split_{split_ctr}_v1.h5') # SS-TL from global model
 
                     # For layer freezing
                     if freeze_training:
