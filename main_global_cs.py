@@ -57,7 +57,7 @@ def step_decay(epoch):
     else:
         lr = 0.0001
     return lr
-lrate = LearningRateScheduler(step_decay)
+
 
 def step_decay2(epoch):
     if(epoch < 40):
@@ -67,7 +67,6 @@ def step_decay2(epoch):
     else:
         lr = 0.0001
     return lr
-lrate2 = LearningRateScheduler(step_decay2)
 
 
 #################################################
@@ -75,7 +74,7 @@ lrate2 = LearningRateScheduler(step_decay2)
 # Save results
 #
 #################################################
-def save_results(history,num_classes,n_ds,n_ch,T,split_ctr):
+def save_results(results_str, history,num_classes,n_ds,n_ch,T,split_ctr):
 
     # Save metrics  
     results = np.zeros((4,len(history.history['acc'])))
@@ -83,15 +82,16 @@ def save_results(history,num_classes,n_ds,n_ch,T,split_ctr):
     results[1] = history.history['val_acc']
     results[2] = history.history['loss']
     results[3] = history.history['val_loss']
-    results_str = f'{results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.csv'
-                 
+    #results_str = f'{results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.csv'
     np.savetxt(results_str, np.transpose(results))
+
     return results[0:2,-1]
 
-
+# Change experiment name, modelname, model declaration, net weights bool,
+# net_dirpath, do_normalize
 
 # CHANGE EXPERIMENT NAME FOR DIFFERENT TESTS!!
-experiment_name = 'global-experiment-edgeEEGNet-weights2'
+experiment_name = 'global-experiment-cubeedgeEEGNet-weights-same-folds-unitNorm'
 modelname = 'edgeEEGNet'
 
 datapath = "/usr/scratch/sassauna4/xiaywang/Projects/BCI/physionet/"
@@ -102,16 +102,22 @@ os.makedirs(f'{results_dir}{experiment_name}/stats', exist_ok=True)
 os.makedirs(f'{results_dir}{experiment_name}/model', exist_ok=True)
 os.makedirs(f'{results_dir}{experiment_name}/plots', exist_ok=True)
 
-# for channel selection using network weights
-net_dirpath = 'results/your-global-experiment-edgeC2F1_100/model/'
+# for channel selection using network weights pretrained
+net_dirpath = 'results/your-global-experiment-edgeC2F1_100/model/' # -edgeC2F1_100
 
 # HYPERPARAMETER TO SET 
-num_classes_list = [4] # list of number of classes to test {2,3,4}
+num_classes_list = [2, 3, 4] # list of number of classes to test {2,3,4}
 n_epochs = 100 # number of epochs for training
 n_ds = 1 # downsamlping factor {1,2,3}
-n_ch_list = [8, 19, 38, 64] # number of channels {8,19,27,38,64}
+n_ch_list = [2, 3, 5, 7, 9, 11, 4, 6, 10, 14, 18, 20, 16, 24, 32, 64] #[8, 19, 38, 64] #[16, 24, 32, 64] #[2, 3, 5, 7, 9, 11, 4, 6, 10, 14, 18, 20, 64] # number of channels
+# {8,19,27,38,64}
+# remember to put 64 if you have net_weights_same_folds = True because it has
+# to train the 64 full model within each fold, then select the channels and
+# train within the same fold
 net_weights_red = True # channel reduction using network weights (spatial conv)
 net_weights_avg_folds = False # average the 5 folds weights
+net_weights_same_folds = True # such that the channels selected never see the
+do_normalize='unitnorm'
 
 T_list = [3] # duration to classify {1,2,3}
 
@@ -119,7 +125,6 @@ if modelname == 'edgeEEGNet':
     lrate = LearningRateScheduler(step_decay2)
 elif modelname == 'EEGNet':
     lrate = LearningRateScheduler(step_decay)
-
 
 # model settings 
 kernLength = int(np.ceil(128/n_ds))
@@ -129,8 +134,13 @@ acc = np.zeros((num_splits,2))
 
 
 for num_classes in num_classes_list:
-    for n_ch in n_ch_list:
-        for T in T_list:
+    for T in T_list:
+        for n_ch in n_ch_list:
+
+            if net_weights_same_folds and n_ch != 64:
+                print("net_weights_same_folds {}, n_ch {}".format(net_weights_same_folds, n_ch))
+                continue
+            print("net_weights_same_folds {}, n_ch {}, training full channels model".format(net_weights_same_folds, n_ch))
 
             # Load data
             #X, y = get.get_data(datapath, n_classes=num_classes)
@@ -167,18 +177,30 @@ for num_classes in num_classes_list:
 
             for split_ctr, (train, test) in enumerate(kf.split(X_orig, y)):
 
+                print('FOLD {}'.format(split_ctr))
+
                 if net_weights_red:
 
-                    if not net_weights_avg_folds:
+                    if net_weights_same_folds:
+
+                        X = X_orig
+                        print('net_weights_same_folds {}, X shape {}'.format(net_weights_same_folds, X.shape))
+
+                    else:
 
                         net_path = os.path.join(net_dirpath, f'global_class_{num_classes}_ds{n_ds}_nch64_T{T}_split_{split_ctr}.h5')
 
-                        X = net_weights_channel_selection(X_orig, n_ch=n_ch, net_path=net_path, modelname=modelname)
+                        X = net_weights_channel_selection(X_orig, n_ch=n_ch, net_path=net_path, modelname=modelname, do_normalize=do_normalize)
+                        print('net_weights_same_folds {}, X shape {}'.format(net_weights_same_folds, X.shape))
+
                 else:
                     X = X_orig
+                    print('net_weights_red {}, X shape {}'.format(net_weights_red, X.shape))
+
+                #exit()
 
                 # init model
-                model = models.edgeEEGNetCF1(nb_classes = num_classes, Chans=n_ch, Samples=n_samples, regRate=0.25,
+                model = models.cubeedgeEEGNetCF1(nb_classes = num_classes, Chans=n_ch, Samples=n_samples, regRate=0.25,
                                 dropoutRate=0.2, kernLength=kernLength, poolLength=poolLength, numFilters=8, 
                                 dropoutType='Dropout')
 
@@ -193,19 +215,73 @@ for num_classes in num_classes_list:
                         validation_data=(X[test], y_cat[test]),
                         batch_size = 16, epochs = n_epochs, callbacks=[lrate], verbose = 2)
 
-                acc[split_ctr] = save_results(history,num_classes,n_ds,n_ch,T,split_ctr)
-                
-                print('Fold {:}\t{:.4f}\t{:.4f}'.format(split_ctr,acc[split_ctr,0], acc[split_ctr,1]))
+                print('Fold {:}\t{:.4f}\t{:.4f}'.format(split_ctr, acc[split_ctr, 0], acc[split_ctr, 1]))
 
-                #Save model
-                model.save(f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.h5')
+                if net_weights_same_folds:
+
+                    acc[split_ctr] = save_results(f'{results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}.csv', history,num_classes,n_ds,n_ch,T,split_ctr)
+
+                    #Save model
+                    model.save(f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}.h5')
+
+                    print('net_weights_same_folds {}, save in {}'.format(net_weights_same_folds, f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}'))
+
+                else:
+
+                    acc[split_ctr] = save_results(f'{results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.csv', history,num_classes,n_ds,n_ch,T,split_ctr)
+
+                    #Save model
+                    model.save(f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.h5')
+
+                    print('net_weights_same_folds {}, save in {}'.format(net_weights_same_folds, f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}'))
+
 
                 #Clear Models
                 K.clear_session()
 
+                if net_weights_same_folds:
+
+                    for n_ch_cs in n_ch_list:
+
+                        if n_ch_cs == 64:
+                            print('net_weights_same_folds {}, n_ch_cs {}. No need to run channel selection for 64 channels'.format(net_weights_same_folds, n_ch_cs))
+                            continue
+                        print('net_weights_same_folds {}, n_ch_cs {}'.format(net_weights_same_folds, n_ch_cs))
+
+                        net_path = os.path.join(f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}.h5')
+
+                        X = net_weights_channel_selection(X_orig, n_ch=n_ch_cs, net_path=net_path, modelname=modelname, do_normalize=do_normalize)
+                        print('read net_path from {} for weights and train a new model with selected channels'.format(net_path))
+
+                        # init model
+                        model_cs = models.cubeedgeEEGNetCF1(nb_classes = num_classes, Chans=n_ch_cs, Samples=n_samples, regRate=0.25,
+                                    dropoutRate=0.2, kernLength=kernLength, poolLength=poolLength, numFilters=8, 
+                                    dropoutType='Dropout')
+
+                        # Set Learning Rate
+                        adam_alpha = Adam(lr=(0.0001))
+                        model_cs.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
+
+                        np.random.seed(42*(split_ctr+1))
+                        np.random.shuffle(train)
+                        # do training
+                        history = model_cs.fit(X[train], y_cat[train], 
+                                validation_data=(X[test], y_cat[test]),
+                                batch_size = 16, epochs = n_epochs, callbacks=[lrate], verbose = 2)
+
+                        print('Fold {:}\t{:.4f}\t{:.4f}'.format(split_ctr,acc[split_ctr,0], acc[split_ctr,1]))
+
+                        acc[split_ctr] = save_results(f'{results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch{n_ch_cs}cs_T{T}_split_{split_ctr}.csv', history,num_classes,n_ds,n_ch_cs,T,split_ctr)
+
+                        #Save model
+                        model_cs.save(f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch_cs}cs_T{T}_split_{split_ctr}.h5')
+
+                        print('net_weights_same_folds {}, save in {}'.format(net_weights_same_folds, f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch_cs}cs_T{T}_split_{split_ctr}.h5'))
+
+                        #Clear Models
+                        K.clear_session()
+
+            break
+
             print('AVG \t {:.4f}\t{:.4f}'.format(acc[:,0].mean(), acc[:,1].mean()))
-
-
-           
-
 
