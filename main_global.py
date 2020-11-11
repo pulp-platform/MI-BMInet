@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 #*----------------------------------------------------------------------------*
 #* Copyright (C) 2020 ETH Zurich, Switzerland                                 *
 #* SPDX-License-Identifier: Apache-2.0                                        *
@@ -17,8 +19,6 @@
 #* Authors: Batuhan Toemekce, Burak Kaya, Michael Hersche                     *
 #*----------------------------------------------------------------------------*
 
-#!/usr/bin/env python3
-
 #################################################
 #
 # Global model training and validation 
@@ -31,7 +31,7 @@ import os
 # 
 import get_data as get
 from tensorflow.keras import utils as np_utils
-from keras.callbacks import LearningRateScheduler
+from keras.callbacks import LearningRateScheduler, ReduceLROnPlateau
 from keras.optimizers import Adam
 from keras import backend as K
 from sklearn.model_selection import KFold
@@ -60,6 +60,17 @@ def step_decay(epoch):
     return lr
 lrate = LearningRateScheduler(step_decay)
 
+def step_decay2(epoch):
+    if(epoch < 40):
+        lr = 0.01
+    elif(epoch < 80):
+        lr = 0.001
+    else:
+        lr = 0.0001
+    return lr
+lrate2 = LearningRateScheduler(step_decay2)
+
+
 #################################################
 #
 # Save results
@@ -73,7 +84,7 @@ def save_results(history,num_classes,n_ds,n_ch,T,split_ctr):
     results[1] = history.history['val_acc']
     results[2] = history.history['loss']
     results[3] = history.history['val_loss']
-    results_str = os.path.join(results_dir,f'stats/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.csv')
+    results_str = f'{results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.csv'
                  
     np.savetxt(results_str, np.transpose(results))
     return results[0:2,-1]
@@ -81,10 +92,11 @@ def save_results(history,num_classes,n_ds,n_ch,T,split_ctr):
 
 
 # CHANGE EXPERIMENT NAME FOR DIFFERENT TESTS!!
-experiment_name = 'your-global-experiment'
+experiment_name = 'global-test'
 
-datapath = "/usr/scratch/xavier/herschmi/EEG_data/physionet/"
-results_dir=f'results/{experiment_name}/'
+datapath = "/usr/scratch/sassauna4/xiaywang/Projects/BCI/physionet/"
+#datapath = "/usr/scratch/xavier/herschmi/EEG_data/physionet/"
+results_dir=f'results/'
 #os.makedirs(results_dir, exist_ok=True)
 os.makedirs(f'{results_dir}{experiment_name}/stats', exist_ok=True)
 os.makedirs(f'{results_dir}{experiment_name}/model', exist_ok=True)
@@ -92,7 +104,7 @@ os.makedirs(f'{results_dir}{experiment_name}/plots', exist_ok=True)
 
 # HYPERPARAMETER TO SET 
 num_classes_list = [4] # list of number of classes to test {2,3,4}
-n_epochs = 2 # number of epochs for training
+n_epochs = 100 # number of epochs for training
 n_ds = 1 # downsamlping factor {1,2,3}
 n_ch_list = [64] # number of channels {8,19,27,38,64}
 T_list = [3] # duration to classify {1,2,3}
@@ -109,7 +121,7 @@ for num_classes in num_classes_list:
         for T in T_list:
 
             # Load data
-            X, y = get.get_data(datapath, n_classes=num_classes)
+            #X, y = get.get_data(datapath, n_classes=num_classes)
 
             ######## If you want to save the data after loading once from .edf (faster)
             #np.savez(datapath+f'{num_classes}class',X_Train = X_Train, y_Train = y_Train)
@@ -133,7 +145,7 @@ for num_classes in num_classes_list:
             for train, test in kf.split(X, y):
                 
                 # init model 
-                model = models.EEGNet(nb_classes = num_classes, Chans=n_ch, Samples=n_samples, regRate=0.25,
+                model = models.edgeEEGNetCF1(nb_classes = num_classes, Chans=n_ch, Samples=n_samples, regRate=0.25,
                                 dropoutRate=0.2, kernLength=kernLength, poolLength=poolLength, numFilters=8, 
                                 dropoutType='Dropout')
                
@@ -147,14 +159,14 @@ for num_classes in num_classes_list:
                 # do training
                 history = model.fit(X[train], y_cat[train], 
                         validation_data=(X[test], y_cat[test]),
-                        batch_size = 16, epochs = n_epochs, callbacks=[lrate], verbose = 2)
+                        batch_size = 16, epochs = n_epochs, callbacks=[lrate2], verbose = 2)
 
                 acc[split_ctr] = save_results(history,num_classes,n_ds,n_ch,T,split_ctr)
                 
                 print('Fold {:}\t{:.4f}\t{:.4f}'.format(split_ctr,acc[split_ctr,0], acc[split_ctr,1]))
 
                 #Save model
-                model.save(os.path.join(results_dir,f'model/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.h5'))
+                model.save(f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.h5')
 
                 #Clear Models
                 K.clear_session()

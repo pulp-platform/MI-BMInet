@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 #*----------------------------------------------------------------------------*
 #* Copyright (C) 2020 ETH Zurich, Switzerland                                 *
 #* SPDX-License-Identifier: Apache-2.0                                        *
@@ -16,8 +18,6 @@
 #*                                                                            *
 #* Authors: Batuhan Toemekce, Burak Kaya, Michael Hersche                     *
 #*----------------------------------------------------------------------------*
-
-#!/usr/bin/env python3
 
 #################################################
 # 5 Global models have alredy been trained
@@ -100,8 +100,8 @@ def save_results(first_eval,tr_hist,num_classes,sub,split,n_ds,n_ch,T):
 
 ##############################################
 # CHANGE EXPERIMENT NAME FOR DIFFERENT TESTS!!
-ss_experiment = 'your-ss-experiment'
-global_experiment = 'your-global-experiment'
+ss_experiment = 'ss-test'
+global_experiment = 'global-test'
 ##############################################
 datapath = "/usr/scratch/xavier/herschmi/EEG_data/physionet/"
 
@@ -123,7 +123,7 @@ n_ch = 64
 verbose = 0 # verbosity for data loader and keras: 0 minimum, 
 
 # retraining parameters
-n_epochs = 5
+n_epochs = 7
 lr = 1e-3
 
 for num_classes in num_classes_list:

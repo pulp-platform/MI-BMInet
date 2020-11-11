@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 #*----------------------------------------------------------------------------*
 #* Copyright (C) 2020 ETH Zurich, Switzerland                                 *
 #* SPDX-License-Identifier: Apache-2.0                                        *
@@ -16,8 +18,6 @@
 #*                                                                            *
 #* Authors: Batuhan Toemekce, Burak Kaya, Michael Hersche                     *
 #*----------------------------------------------------------------------------*
-
-#!/usr/bin/env python3
 
 __author__ = "Michael Hersche"
 __email__ = "herschmi@iis.ee.ethz.ch"

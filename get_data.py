@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 #*----------------------------------------------------------------------------*
 #* Copyright (C) 2020 ETH Zurich, Switzerland                                 *
 #* SPDX-License-Identifier: Apache-2.0                                        *
@@ -17,7 +19,6 @@
 #* Authors: Batuhan Toemekce, Burak Kaya, Michael Hersche                     *
 #*----------------------------------------------------------------------------*
 
-#!/usr/bin/env python3
 
 """
 Loads '.edf' MI data from Physionet 
@@ -44,6 +45,7 @@ def get_data(path, long = False, normalization = 0,subjects_list=range(1,110), n
     path:   string
         path to .edf data of 
     normalization   int {0,1}
+
         normalization per trial 
         0: no normalization; 1: normalized per channel
     long:    bool 

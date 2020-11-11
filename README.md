@@ -23,9 +23,7 @@ conda env create -f dependency.yml -n mybciEnv
 ```
 Make sure to activate the environment before running any code. 
 
-If get a batchnormalization error when running the code, follow the instructions by gurjar112 [here](https://github.com/keras-team/keras/issues/10648): 
-
-change "()" to "[ ]" in line no 1908,1910,1914, 1918 in anaconda3/envs/mybciEnv/lib/python3.6/site-packages/keras/backend/tensorflow_backend.py (e.g. beta = tf.reshape(beta, [-1])) and have 'channels_last' in keras.json
+If get a batchnormalization error when running the code, follow the instructions by gurjar112 [here](https://github.com/keras-team/keras/issues/10648). This is a keras 2.2.4 related problem. 
 
 #### Download Physionet Dataset
 EEGNet: 
