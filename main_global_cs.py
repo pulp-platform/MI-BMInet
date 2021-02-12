@@ -40,6 +40,10 @@ import models as models
 # Channel reduction, downsampling, time window
 from eeg_reduction import *
 
+import time
+
+start = time.time()
+
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -91,9 +95,10 @@ def save_results(results_str, history,num_classes,n_ds,n_ch,T,split_ctr):
 # net_dirpath, do_normalize
 
 # CHANGE EXPERIMENT NAME FOR DIFFERENT TESTS!!
-experiment_name = 'global-experiment-cubeedgeEEGNet-weights-same-folds-unitNorm'
+experiment_name = 'global-experiment-cubeedgeEEGNet-weights-same-folds-0'
 modelname = 'edgeEEGNet'
 
+#datapath = "/usr/scratch/bismantova/xiaywang/Projects/BCI/datasets/PhysionetMMMI/QuantLab/PhysionetMMMI/data/" # there is only 4class there
 datapath = "/usr/scratch/sassauna4/xiaywang/Projects/BCI/physionet/"
 #datapath = "/usr/scratch/xavier/herschmi/EEG_data/physionet/"
 results_dir=f'results/'
@@ -109,7 +114,7 @@ net_dirpath = 'results/your-global-experiment-edgeC2F1_100/model/' # -edgeC2F1_1
 num_classes_list = [2, 3, 4] # list of number of classes to test {2,3,4}
 n_epochs = 100 # number of epochs for training
 n_ds = 1 # downsamlping factor {1,2,3}
-n_ch_list = [2, 3, 5, 7, 9, 11, 4, 6, 10, 14, 18, 20, 16, 24, 32, 64] #[8, 19, 38, 64] #[16, 24, 32, 64] #[2, 3, 5, 7, 9, 11, 4, 6, 10, 14, 18, 20, 64] # number of channels
+n_ch_list = [2, 3, 5, 7, 8, 9, 11, 4, 6, 10, 14, 18, 19, 20, 16, 24, 32, 38, 64] #[8, 19, 38, 64] #[16, 24, 32, 64] #[2, 3, 5, 7, 9, 11, 4, 6, 10, 14, 18, 20, 64] # number of channels
 # {8,19,27,38,64}
 # remember to put 64 if you have net_weights_same_folds = True because it has
 # to train the 64 full model within each fold, then select the channels and
@@ -117,7 +122,7 @@ n_ch_list = [2, 3, 5, 7, 9, 11, 4, 6, 10, 14, 18, 20, 16, 24, 32, 64] #[8, 19, 3
 net_weights_red = True # channel reduction using network weights (spatial conv)
 net_weights_avg_folds = False # average the 5 folds weights
 net_weights_same_folds = True # such that the channels selected never see the
-do_normalize='unitnorm'
+do_normalize=''
 
 T_list = [3] # duration to classify {1,2,3}
 
@@ -146,9 +151,12 @@ for num_classes in num_classes_list:
             #X, y = get.get_data(datapath, n_classes=num_classes)
 
             ######## If you want to save the data after loading once from .edf (faster)
-            #np.savez(datapath+f'{num_classes}class',X_Train = X_Train, y_Train = y_Train)
+            #np.savez(datapath+f'{num_classes}class', X = X, y = y)
             npzfile = np.load(datapath+f'{num_classes}class.npz')
-            X, y = npzfile['X_Train'], npzfile['y_Train']
+            try:
+                X, y = npzfile['X'], npzfile['y']
+            except:
+                X, y = npzfile['X_Train'], npzfile['y_Train']
 
             if net_weights_red:
                 # reduce EEG channels based on network weights L2 norm later
@@ -199,41 +207,46 @@ for num_classes in num_classes_list:
 
                 #exit()
 
-                # init model
-                model = models.cubeedgeEEGNetCF1(nb_classes = num_classes, Chans=n_ch, Samples=n_samples, regRate=0.25,
-                                dropoutRate=0.2, kernLength=kernLength, poolLength=poolLength, numFilters=8, 
-                                dropoutType='Dropout')
-
-
-                # Set Learning Rate
-                adam_alpha = Adam(lr=(0.0001))
-                model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
-                np.random.seed(42*(split_ctr+1))
-                np.random.shuffle(train)
-                # do training
-                history = model.fit(X[train], y_cat[train], 
-                        validation_data=(X[test], y_cat[test]),
-                        batch_size = 16, epochs = n_epochs, callbacks=[lrate], verbose = 2)
-
-                print('Fold {:}\t{:.4f}\t{:.4f}'.format(split_ctr, acc[split_ctr, 0], acc[split_ctr, 1]))
-
-                if net_weights_same_folds:
-
-                    acc[split_ctr] = save_results(f'{results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}.csv', history,num_classes,n_ds,n_ch,T,split_ctr)
-
-                    #Save model
-                    model.save(f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}.h5')
-
-                    print('net_weights_same_folds {}, save in {}'.format(net_weights_same_folds, f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}'))
-
+                if os.path.isfile(f'{results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}.csv'):
+                    print(f'File {results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}.csv exists')
                 else:
+                    print (f'File {results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}.csv doesn\'t exists')
 
-                    acc[split_ctr] = save_results(f'{results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.csv', history,num_classes,n_ds,n_ch,T,split_ctr)
+                    # init model
+                    model = models.cubeedgeEEGNetCF1(nb_classes = num_classes, Chans=n_ch, Samples=n_samples, regRate=0.25,
+                                    dropoutRate=0.2, kernLength=kernLength, poolLength=poolLength, numFilters=8, 
+                                    dropoutType='Dropout')
 
-                    #Save model
-                    model.save(f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.h5')
 
-                    print('net_weights_same_folds {}, save in {}'.format(net_weights_same_folds, f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}'))
+                    # Set Learning Rate
+                    adam_alpha = Adam(lr=(0.0001))
+                    model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
+                    np.random.seed(42*(split_ctr+1))
+                    np.random.shuffle(train)
+                    # do training
+                    history = model.fit(X[train], y_cat[train], 
+                            validation_data=(X[test], y_cat[test]),
+                            batch_size = 16, epochs = n_epochs, callbacks=[lrate], verbose = 2)
+
+                    print('Fold {:}\t{:.4f}\t{:.4f}'.format(split_ctr, acc[split_ctr, 0], acc[split_ctr, 1]))
+
+                    if net_weights_same_folds:
+
+                        acc[split_ctr] = save_results(f'{results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}.csv', history,num_classes,n_ds,n_ch,T,split_ctr)
+
+                        #Save model
+                        model.save(f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}.h5')
+
+                        print('net_weights_same_folds {}, save in {}'.format(net_weights_same_folds, f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}'))
+
+                    else:
+
+                        acc[split_ctr] = save_results(f'{results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.csv', history,num_classes,n_ds,n_ch,T,split_ctr)
+
+                        #Save model
+                        model.save(f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.h5')
+
+                        print('net_weights_same_folds {}, save in {}'.format(net_weights_same_folds, f'{results_dir}{experiment_name}/model/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}'))
 
 
                 #Clear Models
@@ -281,7 +294,10 @@ for num_classes in num_classes_list:
                         #Clear Models
                         K.clear_session()
 
-            break
 
             print('AVG \t {:.4f}\t{:.4f}'.format(acc[:,0].mean(), acc[:,1].mean()))
 
+            break
+
+end = time.time()
+print("time used: ", end - start)

@@ -31,10 +31,12 @@ import numpy as np
 import pyedflib as edf
 import statistics as stats
 import random
+import scipy.io as sio
+from scipy.signal import butter, sosfilt
 
 
-__author__ = "Batuhan Tomekce, Burak Alp Kaya, Michael Hersche"
-__email__ = "tbatuhan@ethz.ch, bukaya@ethz.ch, herschmi@ethz.ch"
+__author__ = "Batuhan Tomekce, Burak Alp Kaya, Michael Hersche, modified by Xiaying Wang"
+__email__ = "tbatuhan@ethz.ch, bukaya@ethz.ch, herschmi@ethz.ch, xiaywang@ethz.ch"
 
 def get_data(path, long = False, normalization = 0,subjects_list=range(1,110), n_classes=4):
     '''
@@ -249,3 +251,102 @@ def read_data(subjects , runs, path, long=False):
         
     return X, y
 
+
+__author__ = "Michael Hersche and Tino Rellstab, modified by Tibor Schneider and Xiaying Wang"
+__email__ = "herschmi@ethz.ch, tinor@ethz.ch, sctibor@ethz.ch, xiaywang@ethz.ch"
+
+def highpass(x, fs, fc, order=4):
+    """
+    Applies highpass filter
+
+    Parameters:
+     - x:     numpy.array, input signal, sampled at fs
+     - fs:    float, sampling frequency
+     - fc:    float, cutoff frequency
+     - order: filter order
+
+    Returns: numpy.array
+    """
+    nyq = 0.5 * fs
+    norm_fc = fc / nyq
+    sos = butter(order, norm_fc, btype='highpass', output='sos')
+    return sosfilt(sos, x)
+
+def _use_time_window_post_cue(x, fs=250, t1_factor=1.5, t2_factor=6):
+    """
+    Prepares the input data to only use the post-cue range.
+
+    Parameters:
+     - x:         np.ndarray, size = [s, C, T], where T should be 1750
+     - fs:        integer, sampling rate
+     - t1_factor: float, window will start at t1_factor * fs
+     - t2_factor: float, window will end at t2_factor * fs
+
+    Returns np.ndarray, size = [s, C, T'], where T' should be 1125 with default values
+    """
+
+    assert t1_factor < t2_factor
+
+    t1 = int(t1_factor * fs)
+    t2 = int(t2_factor * fs)
+
+    return x[:, :, t1:t2]
+
+
+def get_data_bci(subject, training, path, do_filter=False, n_classes=4):
+    '''	Loads the dataset 2a of the BCI Competition IV
+    available on http://bnci-horizon-2020.eu/database/data-sets
+    Keyword arguments:
+    subject -- number of subject in [1, .. ,9]
+    training -- if True, load training data
+                if False, load testing data
+
+    Return:	data_return 	numpy matrix 	size = NO_valid_trial x 22 x 1750
+            class_return 	numpy matrix 	size = NO_valid_trial
+    '''
+
+    NO_channels = 22
+    NO_tests = 6*48
+    Window_Length = 7*250
+
+    class_return = np.zeros(NO_tests)
+    data_return = np.zeros((NO_tests,NO_channels,Window_Length))
+
+    n_valid_trials = 0
+    if training:
+        a = sio.loadmat(path+'A0'+str(subject)+'T.mat')
+    else:
+        a = sio.loadmat(path+'A0'+str(subject)+'E.mat')
+    a_data = a['data']
+    for ii in range(0,a_data.size):
+        a_data1 = a_data[0,ii]
+        a_data2=[a_data1[0,0]]
+        a_data3=a_data2[0]
+        a_X 		= a_data3[0]
+        a_trial 	= a_data3[1]
+        a_y 		= a_data3[2]
+        a_fs 		= a_data3[3]
+        a_classes 	= a_data3[4]
+        a_artifacts = a_data3[5]
+        a_gender 	= a_data3[6]
+        a_age 		= a_data3[7]
+
+
+        if do_filter:
+            #print(a_X.shape[1])
+            for chan in range(a_X.shape[1]):
+                a_X[:,chan] = highpass(a_X[:,chan], a_fs, 4)
+
+
+        for trial in range(0,a_trial.size):
+            if a_artifacts[trial] == 0:
+                range_a = int(a_trial[trial])
+                range_b = range_a + Window_Length
+                data_return[n_valid_trials, :, :] = np.transpose(a_X[range_a:range_b, :22])
+                class_return[n_valid_trials] = int(a_y[trial])
+                n_valid_trials += 1
+
+    data_return = data_return[0:n_valid_trials, :, :]
+    data_return = _use_time_window_post_cue(data_return)
+
+    return data_return, class_return[0:n_valid_trials]-1

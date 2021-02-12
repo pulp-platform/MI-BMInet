@@ -50,7 +50,7 @@ def eeg_reduction(x, n_ds = 1, n_ch = 64, T = 3, fs = 160, net_weights=True, net
     '''
 
 
-    if n_ch ==64:
+    if n_ch ==64 or n_ch==22:
         channels = np.arange(0,n_ch)
     elif n_ch == 38:
         channels = np.array([0,2,4,6,8,10,12,14,16,18,20,21,22,23,24,26,28,29,31,33,35,37,40,41,42,43,46,48,50,52,54,55,57,59,60,61,62,63])
@@ -61,10 +61,10 @@ def eeg_reduction(x, n_ds = 1, n_ch = 64, T = 3, fs = 160, net_weights=True, net
     elif n_ch ==8:
         channels = np.array([8,10,12,25,27,48,52,57])
 
-
-    n_s_orig = int(T*fs)
-    n_s = int(np.ceil(T*fs/n_ds)) # number of time samples
-    n_trial = x.shape[0]
+    if T != 0:
+        n_s_orig = int(T*fs)
+        n_s = int(np.ceil(T*fs/n_ds)) # number of time samples
+        n_trial = x.shape[0]
 
     # channel selection
     if n_ds >1:
@@ -77,7 +77,7 @@ def eeg_reduction(x, n_ds = 1, n_ch = 64, T = 3, fs = 160, net_weights=True, net
                 y[trial,chan] = scp.decimate(x[trial,chan,:n_s_orig],n_ds)
     else:
         y = x[:,channels]
-        y = y[:,:,:n_s_orig]
+        y = y[:,:,:n_s_orig] if T!=0 else y[:,:,:]
 
     return y
 

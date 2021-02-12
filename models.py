@@ -399,7 +399,7 @@ def edgeEEGNetCF1_conc(nb_classes, Chans=64, Samples=128, regRate=.25,
 
 def cubeEEGNet(nb_classes, Chans=64, Samples=128, regRate=.25,
                dropoutRate=0.1, kernLength=128,poolLength=8,
-               numFilters=8, dropoutType='Dropout'):
+               numFilters=8, dropoutType='Dropout', activation='relu'):
 
     F1 = numFilters
     D = 2
@@ -412,6 +412,10 @@ def cubeEEGNet(nb_classes, Chans=64, Samples=128, regRate=.25,
         raise ValueError('dropoutType must be one of SpatialDropout2D '
                          'or Dropout, passed as a string.')
 
+    # check the activation input
+    activation = activation.lower()
+    assert activation in ['elu', 'relu']
+
     input1   = Input(shape = (Chans, Samples,1))
 
     ##################################################################
@@ -423,7 +427,7 @@ def cubeEEGNet(nb_classes, Chans=64, Samples=128, regRate=.25,
                                    depth_multiplier = D,
                                    depthwise_constraint = max_norm(1.))(block1)
     block1       = BatchNormalization()(block1)
-    block1       = Activation('elu')(block1)
+    block1       = Activation('elu')(block1) # if activation == 'elu' else Activation('relu')(block1)
     block1       = AveragePooling2D((1, poolLength))(block1) # changed from 4 to 8
     block1       = dropoutType(dropoutRate)(block1)
 
