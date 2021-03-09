@@ -28,12 +28,56 @@ import scipy.signal as scp
 import os
 from keras.models import load_model
 from numpy import linalg as la
+from tqdm import tqdm
+import models as models
 
 import mne
 from matplotlib import pyplot as plt
 from mne.defaults import HEAD_SIZE_DEFAULT
 from mne.channels._standard_montage_utils import _read_theta_phi_in_degrees
 
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+
+# HYPERPARAMETER TO SET
+
+DATASET = 'bci'
+modelname = 'edgeEEGNet'
+expname = 'exp3_bak'
+
+num_classes_list = [4,3,2] # list of number of classes to test {2,3,4}
+n_ds = 1 # downsamlping factor {1,2,3}
+n_ch_list = [22] #[16, 24, 32] #[2, 3, 5, 7, 9, 11, 4, 6, 10, 14, 18, 20]#[8, 19, 38, 64] # number of channels {8,19,27,38,64}
+net_weights_red = True
+
+if DATASET == 'physionet':
+    num_splits = 5
+    T_list = [3] # duration to classify {1,2,3}
+    net_dirpath = f'../results/global-experiment-cube{modelname}'+'-weights-same-folds-{}/model/'
+elif DATASET == 'bci':
+    num_splits = 9
+    T_list = [0] # duration to classify {1,2,3}
+    net_dirpath = f'../logs/{DATASET}/{modelname}/{expname}'+'/model/{}'
+
+# for channel selection using network weights
+#SINGLERUN = True
+RUN = range(25) #[0,1,2,3,4] 
+same_folds = True
+PLOT_SINGLE_RUN = False
+
+# if SINGLERUN:
+#     net_dirpath = f'../results/global-experiment-cubeedgeEEGNet-weights-same-folds-{RUN}/model/'
+#     #net_dirpath = f'../results/bci-cubeEEGNet-weights-same-subj-{RUN}/model/'
+#     figsavepath= f'./plots/channels_head_plots/{DATASET}-cubeedgeEEGNet_{RUN}'
+# else:
+#     net_dirpath = '../results/global-experiment-cubeedgeEEGNet-weights-same-folds-{}/model/'
+#     # net_dirpath = f'../results/bci-cubeEEGNet-weights-same-subj-{}/model/'
+#     figsavepath= './plots/channels_head_plots/{DATASET}-cubeedgeEEGNet_avgruns'
+
+figsavepath= './plots/channels_head_plots/{}'+f'-cube{modelname}'+'_{}'
+
+FOR_QUANT = True # plot green dots on topomap for the selected channels
 
 
 def net_weights_cs(n_ch = 64, net_path='./results/your-global-experiment/model/global_class_4_ds1_nch64_T3_split_0.h5', modelname='EEGNet'):
@@ -55,7 +99,7 @@ def net_weights_cs(n_ch = 64, net_path='./results/your-global-experiment/model/g
 
     '''
 
-    model = load_model(net_path)
+    model = load_model(net_path, custom_objects={'TimeDropout2D':models.TimeDropout2D})
     #print(X.shape) # (8820, 64, 480, 1)
 
     # for layer in model.layers:
@@ -102,7 +146,7 @@ def net_weights_folds_avg_cs(n_ch = 64, num_splits=5, net_path='./results/your-g
 
         net_path_fold = net_path[:-4]+str(split_ctr)+'.h5'
 
-        model = load_model(net_path_fold)
+        model = load_model(net_path_fold, custom_objects={'TimeDropout2D':models.TimeDropout2D})
 
         if modelname=='EEGNet':
             w = model.layers[3].get_weights()[0]
@@ -121,7 +165,7 @@ def net_weights_folds_avg_cs(n_ch = 64, num_splits=5, net_path='./results/your-g
     return wl2, channels
 
 
-def plot_my_topomap(data, channels, montage_info, my_biosemi_montage, fname='./plots/channels_head_plots/topomap.png'):
+def plot_my_topomap(data, channels, montage_info, my_biosemi_montage, fname='./plots/channels_head_plots/topomap.svg'):
 
     fake_evoked = mne.EvokedArray(data, montage_info)
     fake_evoked.set_montage(my_biosemi_montage)
@@ -149,13 +193,24 @@ def plot_my_topomap(data, channels, montage_info, my_biosemi_montage, fname='./p
     fig, ax = plt.subplots(ncols=1, figsize=(6, 6), gridspec_kw=dict(top=0.9),
                            sharex=True, sharey=True)
 
+    if np.asarray(channels).any():
+        maskParams = dict(marker='o', markerfacecolor='g', markeredgecolor='g', linewidth=0, markersize=10, markeredgewidth=2)
+        show_names=True
+    else:
+        # make electrodes maker thicker
+        channels_bool[:] = True
+        maskParams = dict(marker='o', markerfacecolor='k', markeredgecolor='k', linewidth=0, markersize=2, markeredgewidth=0)
+        show_names=False
+
     topo, _=mne.viz.plot_topomap(fake_evoked.data[:, 0], fake_evoked.info, axes=ax,
-                                 show=False, show_names=True, names=fake_evoked.ch_names,
-                                 vmin=min(data), vmax=max(data), mask=channels_bool)
+                                 show=False, show_names=show_names, names=fake_evoked.ch_names,
+                                 vmin=min(data), vmax=max(data), mask=channels_bool,
+                                 mask_params=maskParams, extrapolate='head', contours=6,
+                                 image_interp='bicubic', outlines='head')
                                  #cmap='RdBu_r')
 
     # add titles
-    ax.set_title('MNE', fontweight='bold')
+    #ax.set_title('MNE', fontweight='bold')
 
     fig.colorbar(topo, fraction=0.046, pad=0.04)
 
@@ -164,28 +219,11 @@ def plot_my_topomap(data, channels, montage_info, my_biosemi_montage, fname='./p
     print("figure saved in", fname)
 
 
-
-# HYPERPARAMETER TO SET
-num_classes_list = [4] # list of number of classes to test {2,3,4}
-n_ds = 1 # downsamlping factor {1,2,3}
-n_ch_list = [2, 3, 5, 7, 8, 9, 11, 4, 6, 10, 14, 18, 19, 20, 16, 24, 32, 38, 64] #[16, 24, 32] #[2, 3, 5, 7, 9, 11, 4, 6, 10, 14, 18, 20]#[8, 19, 38, 64] # number of channels {8,19,27,38,64}
-net_weights_red = True
-T_list = [3] # duration to classify {1,2,3}
-
-num_splits = 5
-
-# for channel selection using network weights
-net_dirpath = '../results/global-experiment-cubeedgeEEGNet-weights-same-folds-3/model/'
-same_folds = True
-figsavepath= './plots/channels_head_plots/cubeedgeEEGNet_3_sfreq160'
-
-modelname = 'edgeEEGNet'
-
-os.makedirs(figsavepath, exist_ok=True)
-
-
-# set up the EEG montage for plotting
-fname = 'physionet_mmmi64chs.tsv'
+#set up the EEG montage for plotting
+if DATASET == 'physionet':
+    fname = 'physionet_mmmi64chs.tsv'
+elif DATASET == 'bci':
+    fname = 'physionet_mmmi22chs.tsv'
 
 my_biosemi_montage = _read_theta_phi_in_degrees(fname=fname, head_size=HEAD_SIZE_DEFAULT,
                                      fid_names=['Nz', 'LPA', 'RPA'],
@@ -204,44 +242,94 @@ montage_info = mne.create_info(ch_names=my_biosemi_montage.ch_names, sfreq=160.,
 #rng = np.random.RandomState(0)
 #data = rng.normal(size=(n_channels, 1)) * 1e-6
 
+if DATASET == 'physionet':
+    modelfname = 'global_class_{}_ds{}_nch64{}_T{}_split_{}.h5'
+    savefname = '_global_class_{}_ds{}_nch{}{}_T{}_{}.svg'
+elif DATASET == 'bci':
+    modelfname = '_class{}_nch22_split{}.h5'
+    savefname = '_bci_class_{}_ds{}_nch{}{}_T{}_{}.svg'
+
 
 for num_classes in num_classes_list:
     for n_ch in n_ch_list:
         for T in T_list:
 
-            plt.close('all')
+            if DATASET == 'bci':
+                wl2_avg = np.zeros((len(RUN), 22, 1))
+                wl2_folds = np.zeros((len(RUN), num_splits, 22, 1))
+            elif DATASET == 'physionet':
+                wl2_avg = np.zeros((len(RUN), 64, 1))
+                wl2_folds = np.zeros((len(RUN), num_splits, 64, 1))
 
-            if same_folds:
-                net_path = os.path.join(net_dirpath, f'global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_0.h5')
+            with tqdm(desc='Runs', total=len(RUN), ascii=True) as bar:
+                for i, r in enumerate(RUN):
 
+                    if PLOT_SINGLE_RUN:
+                        os.makedirs(figsavepath.format(DATASET, r), exist_ok=True)
+
+                    plt.close('all')
+
+                    if same_folds:
+                        if DATASET == 'physionet':
+                            net_path = os.path.join(net_dirpath.format(r), modelfname.format(num_classes, n_ds, 'cs', T, 0))
+                        else:
+                            net_path = os.path.join(net_dirpath.format(r), modelfname.format(num_classes, 0))
+
+                    else:
+                        net_path = os.path.join(net_dirpath.format(r), modelfname.format(num_classes, n_ds, '', T, 0))
+
+                    wl2, channels = net_weights_folds_avg_cs(n_ch=n_ch, num_splits=num_splits, net_path=net_path, modelname=modelname)
+                    wl2_avg[i] = wl2
+
+                    if PLOT_SINGLE_RUN:
+
+                        if same_folds:
+                            fname = os.path.join(figsavepath.format(DATASET, r), modelname+savefname.format(num_classes, n_ds, n_ch, 'cs', T, 'avg'))
+
+                        else:
+                            fname = os.path.join(figsavepath.format(DATASET, r), modelname+savefname.format(num_classes, n_ds, n_ch, '', T, 'avg'))
+
+                        plot_my_topomap(wl2, channels, montage_info, my_biosemi_montage, fname=fname)
+
+                    for split_ctr in range(num_splits):
+
+                        if same_folds:
+                            if DATASET == 'physionet':
+                                net_path = os.path.join(net_dirpath.format(r), modelfname.format(num_classes, n_ds, 'cs', T, split_ctr))
+                            else:
+                                net_path = os.path.join(net_dirpath.format(r), modelfname.format(num_classes, split_ctr))
+
+                        else:
+                            net_path = os.path.join(net_dirpath.format(r), modelfname.format(num_classes, n_ds, '', T, split_ctr))
+
+                        wl2, channels = net_weights_cs(n_ch=n_ch, net_path=net_path, modelname=modelname)
+                        wl2_folds[i, split_ctr] = wl2
+
+                        if PLOT_SINGLE_RUN:
+
+                            if same_folds:
+                                fname = os.path.join(figsavepath.format(DATASET, r), modelname+savefname.format(num_classes, n_ds, n_ch, 'cs', T, f'split_{split_ctr}'))
+
+                            else:
+                                fname = os.path.join(figsavepath.format(DATASET, r), modelname+savefname.format(num_classes, n_ds, n_ch, 'cs', T, f'split_{split_ctr}'))
+
+                            plot_my_topomap(wl2, channels, montage_info, my_biosemi_montage, fname=fname)
+
+                    bar.update()
+
+            os.makedirs(figsavepath.format(DATASET, 'avgruns'), exist_ok=True)
+            # average over different runs
+            wl2 = np.mean(wl2_avg, axis=0)
+            fname = os.path.join(figsavepath.format(DATASET, 'avgruns'), modelname+savefname.format(num_classes, n_ds, n_ch, 'cs', T, 'avg'))
+            if FOR_QUANT:
+                sort_i = np.argsort(wl2, axis=0)[::-1][:,0]
+                channels = sort_i[:n_ch]
+                plot_my_topomap(wl2, channels, montage_info, my_biosemi_montage, fname=fname)
             else:
-                net_path = os.path.join(net_dirpath, f'global_class_{num_classes}_ds{n_ds}_nch64_T{T}_split_0.h5')
-
-            wl2, channels = net_weights_folds_avg_cs(n_ch=n_ch, num_splits=num_splits, net_path=net_path, modelname=modelname)
-
-            if same_folds:
-                fname = os.path.join(figsavepath, modelname+f'_global_class_{num_classes}_ds{n_ds}_nch{n_ch}cs_T{T}_avg.png')
-
-            else:
-                fname = os.path.join(figsavepath, modelname+f'_global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_avg.png')
-
-            plot_my_topomap(wl2, channels, montage_info, my_biosemi_montage, fname=fname)
+                plot_my_topomap(wl2, [], montage_info, my_biosemi_montage, fname=fname)
 
             for split_ctr in range(num_splits):
-
-                if same_folds:
-                    net_path = os.path.join(net_dirpath, f'global_class_{num_classes}_ds{n_ds}_nch64cs_T{T}_split_{split_ctr}.h5')
-
-                else:
-                    net_path = os.path.join(net_dirpath, f'global_class_{num_classes}_ds{n_ds}_nch64_T{T}_split_{split_ctr}.h5')
-
-                wl2, channels = net_weights_cs(n_ch=n_ch, net_path=net_path, modelname=modelname)
-
-                if same_folds:
-                    fname = os.path.join(figsavepath, modelname+f'_global_class_{num_classes}_ds{n_ds}_nch{n_ch}cs_T{T}_splits_{split_ctr}.png')
-
-                else:
-                    fname = os.path.join(figsavepath, modelname+f'_global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_splits_{split_ctr}.png')
-
-                plot_my_topomap(wl2, channels, montage_info, my_biosemi_montage, fname=fname)
+                wl2 = np.mean(wl2_folds[:,split_ctr,:,:], axis=0)
+                fname = os.path.join(figsavepath.format(DATASET, 'avgruns'), modelname+savefname.format(num_classes, n_ds, n_ch, 'cs', T, f'split_{split_ctr}'))
+                plot_my_topomap(wl2, [], montage_info, my_biosemi_montage, fname=fname)
 

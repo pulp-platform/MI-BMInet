@@ -91,10 +91,10 @@ def save_results(history,num_classes,n_ds,n_ch,T,split_ctr):
 
 
 # CHANGE EXPERIMENT NAME FOR DIFFERENT TESTS!!
-experiment_name = 'global-experiment-edgeEEGNet-weights2'
-modelname = 'edgeEEGNet'
+experiment_name = 'cubeai-global-EEGNet'
+modelname = 'EEGNet'
 
-datapath = "/usr/scratch/sassauna4/xiaywang/Projects/BCI/physionet/"
+datapath = "/usr/scratch/sassauna4/xiaywang/Projects/BCI/PhysionetMMMI/"
 #datapath = "/usr/scratch/xavier/herschmi/EEG_data/physionet/"
 results_dir=f'results/'
 #os.makedirs(results_dir, exist_ok=True)
@@ -110,7 +110,8 @@ num_classes_list = [4] # list of number of classes to test {2,3,4}
 n_epochs = 100 # number of epochs for training
 n_ds = 1 # downsamlping factor {1,2,3}
 n_ch_list = [8, 19, 38, 64] # number of channels {8,19,27,38,64}
-net_weights_red = True # channel reduction using network weights (spatial conv)
+
+net_weights_red = False # channel reduction using network weights (spatial conv)
 net_weights_avg_folds = False # average the 5 folds weights
 
 T_list = [3] # duration to classify {1,2,3}
@@ -136,9 +137,9 @@ for num_classes in num_classes_list:
             #X, y = get.get_data(datapath, n_classes=num_classes)
 
             ######## If you want to save the data after loading once from .edf (faster)
-            #np.savez(datapath+f'{num_classes}class',X_Train = X_Train, y_Train = y_Train)
+            #np.savez(datapath+f'{num_classes}class',X = X, y = y)
             npzfile = np.load(datapath+f'{num_classes}class.npz')
-            X, y = npzfile['X_Train'], npzfile['y_Train']
+            X, y = npzfile['X'], npzfile['y']
 
             if net_weights_red:
                 # reduce EEG channels based on network weights L2 norm later
@@ -178,7 +179,7 @@ for num_classes in num_classes_list:
                     X = X_orig
 
                 # init model
-                model = models.edgeEEGNetCF1(nb_classes = num_classes, Chans=n_ch, Samples=n_samples, regRate=0.25,
+                model = models.cubeedgeEEGNetCF1(nb_classes = num_classes, Chans=n_ch, Samples=n_samples, regRate=0.25,
                                 dropoutRate=0.2, kernLength=kernLength, poolLength=poolLength, numFilters=8, 
                                 dropoutType='Dropout')
 

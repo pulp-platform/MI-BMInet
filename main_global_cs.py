@@ -86,7 +86,6 @@ def save_results(results_str, history,num_classes,n_ds,n_ch,T,split_ctr):
     results[1] = history.history['val_acc']
     results[2] = history.history['loss']
     results[3] = history.history['val_loss']
-    #results_str = f'{results_dir}{experiment_name}/stats/global_class_{num_classes}_ds{n_ds}_nch{n_ch}_T{T}_split_{split_ctr}.csv'
     np.savetxt(results_str, np.transpose(results))
 
     return results[0:2,-1]

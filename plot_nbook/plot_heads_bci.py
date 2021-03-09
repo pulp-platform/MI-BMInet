@@ -35,6 +35,30 @@ from mne.defaults import HEAD_SIZE_DEFAULT
 from mne.channels._standard_montage_utils import _read_theta_phi_in_degrees
 
 
+# HYPERPARAMETER TO SET
+num_classes_list = [4] # list of number of classes to test {2,3,4}
+n_ds = 1 # downsamlping factor {1,2,3}
+n_ch_list = [22]#, 3, 5, 7, 8, 9, 11, 4, 6, 10, 14, 18, 19, 20, 16, 22] #[16, 24, 32] #[2, 3, 5, 7, 9, 11, 4, 6, 10, 14, 18, 20]#[8, 19, 38, 64] # number of channels {8,19,27,38,64}
+net_weights_red = True
+T_list = [0] # duration to classify {1,2,3}
+
+num_splits = 9
+
+DATASET = 'bci'
+modelname = 'edgeEEGNet'
+
+# for channel selection using network weights
+net_dirpath = f'../logs/{DATASET}/{modelname}'
+same_folds = True
+figsavepath= './plots/channels_head_plots/{}'+f'-cube{modelname}'+'_{}'
+
+# for channel selection using network weights
+#SINGLERUN = True
+RUN = range(25)[0,1,2,3,4] 
+same_folds = True
+PLOT_SINGLE_RUN = False
+
+
 
 def net_weights_cs(n_ch = 64, net_path='./results/your-global-experiment/model/bci_class_4_ds1_nch64_T3_split_0.h5', modelname='EEGNet'):
     '''
@@ -154,7 +178,7 @@ def plot_my_topomap(data, channels, montage_info, my_biosemi_montage, fname='./p
     topo, _=mne.viz.plot_topomap(fake_evoked.data[:, 0], fake_evoked.info, axes=ax,
                                  show=False, show_names=True, names=fake_evoked.ch_names,
                                  vmin=min(data), vmax=max(data), mask=channels_bool,
-                                 mask_params=maskParams, extrapolate='head', contours=0, image_interp='lanczos')
+                                 mask_params=maskParams, extrapolate='head', contours=0, image_interp='bicubic')
                                  #cmap='RdBu_r')
 
     # add titles
@@ -166,25 +190,6 @@ def plot_my_topomap(data, channels, montage_info, my_biosemi_montage, fname='./p
     plt.savefig(fname)
     print("figure saved in", fname)
 
-
-
-# HYPERPARAMETER TO SET
-num_classes_list = [4] # list of number of classes to test {2,3,4}
-n_ds = 1 # downsamlping factor {1,2,3}
-n_ch_list = [2]#, 3, 5, 7, 8, 9, 11, 4, 6, 10, 14, 18, 19, 20, 16, 22] #[16, 24, 32] #[2, 3, 5, 7, 9, 11, 4, 6, 10, 14, 18, 20]#[8, 19, 38, 64] # number of channels {8,19,27,38,64}
-net_weights_red = True
-T_list = [0] # duration to classify {1,2,3}
-
-num_splits = 9
-
-# for channel selection using network weights
-net_dirpath = '../results/bci-cubeEEGNet-weights-same-subj/model/'
-same_folds = True
-figsavepath= './plots/channels_head_plots/bci-cubeEEGNet-test'
-
-modelname = 'EEGNet'
-
-os.makedirs(figsavepath, exist_ok=True)
 
 
 # set up the EEG montage for plotting

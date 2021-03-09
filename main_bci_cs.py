@@ -73,7 +73,7 @@ def save_results(results_str, history,num_classes,n_ds,n_ch,T,subject):
 # net_dirpath, do_normalize
 
 # CHANGE EXPERIMENT NAME FOR DIFFERENT TESTS!!
-experiment_name = 'bci-cubeedgeEEGNet-weights-same-subj-3'
+experiment_name = 'bci-cubeedgeEEGNet-weights-same-subj-4'
 modelname = 'edgeEEGNet'
 
 #datapath = "/usr/scratch/bismantova/xiaywang/Projects/BCI/datasets/PhysionetMMMI/QuantLab/PhysionetMMMI/data/" # there is only 4class there

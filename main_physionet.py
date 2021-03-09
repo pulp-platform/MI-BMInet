@@ -49,10 +49,10 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # start = time.time()
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
 TOPOLOGY = "edgeEEGNet"
-EXP_ID = 0
+EXP_ID = 2
 LOG_NOTE = 'cs with net weights from same folds'
 
 BENCHMARK = True
@@ -70,11 +70,11 @@ SAVE_ONLY_64CH_MODEL = False
 if BENCHMARK:
     SAVE_ONLY_64CH_MODEL = True
 
-REDUCE_MANUAL = True # channels overall the brain ('dist') or over the sensorimotor area ('headset')
-REDUCE_NETW = False # channel reduction using network weights (spatial conv)
+REDUCE_MANUAL = False # channels overall the brain ('dist') or over the sensorimotor area ('headset')
+REDUCE_NETW = True # channel reduction using network weights (spatial conv)
 do_normalize='' # for channel reduction using net weights
 #HEADSETMODE='headset' # 'dist' or 'headset' or ''
-RMODE='dist' # 'crow', 'ccfrows', 'ccprows' or 'dist' or 'auto'
+RMODE='auto' # 'crow', 'ccfrows', 'ccprows' or 'dist' or 'auto'
 if REDUCE_MANUAL and REDUCE_NETW:
     raise ValueError('choose either model reduction by manual selection or by network weights, but not both at the same time')
 if REDUCE_MANUAL and RMODE == '':
@@ -90,7 +90,7 @@ os.makedirs(os.path.join(EXP_FOLDER, 'plots'), exist_ok=True)
 N_EPOCHS = 100 # number of epochs for training
 
 num_classes_list = [2, 3, 4] # list of number of classes to test {2,3,4}
-n_ch_list = [2, 3, 5, 7, 8, 9, 11, 4, 6, 10, 14, 18, 19, 20, 16, 24, 32, 38, 64] #[8, 19, 38, 64] #[16, 24, 32, 64] #[2, 3, 5, 7, 9, 11, 4, 6, 10, 14, 18, 20, 64] # number of channels
+n_ch_list = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 14, 16, 18, 19, 20, 24, 32, 38, 64] #[8, 19, 38, 64] #[16, 24, 32, 64] #[2, 3, 5, 7, 9, 11, 4, 6, 10, 14, 18, 20, 64] # number of channels
 # {8,19,27,38,64}
 # remember to put 64 if you have net_weights_same_folds = True because it has
 # to train the 64 full model within each fold, then select the channels and
@@ -98,7 +98,7 @@ n_ch_list = [2, 3, 5, 7, 8, 9, 11, 4, 6, 10, 14, 18, 19, 20, 16, 24, 32, 38, 64]
 T=3
 n_ds=1
 
-if RMODE != 'auto':
+if RMODE != 'auto' and REDUCE_MANUAL:
     if RMODE == 'dist':
         manual_ch = [8, 19, 27, 38]
     elif RMODE == 'crow':
@@ -140,10 +140,10 @@ def train_validate(X_train, y_train, X_test, y_test, n_classes=4, n_channels=64,
 
     if topology == 'edgeeegnet':
         lrate = LearningRateScheduler(step_decay2)
-        model = models.cubeedgeEEGNetCF1(nb_classes = n_classes, Chans=n_channels, Samples=X_train.shape[2], dropoutRate=dropoutRate)
+        model = models.cubeedgeEEGNetCF1(nb_classes = n_classes, Chans=n_channels, Samples=X_train.shape[2], dropoutRate=dropoutRate, numFilters=16)
     elif topology == 'eegnet':
         lrate = LearningRateScheduler(step_decay)
-        model = models.cubeEEGNet(nb_classes = n_classes, Chans=n_channels, Samples=X_train.shape[2], dropoutRate=dropoutRate)
+        model = models.cubeEEGNet(nb_classes = n_classes, Chans=n_channels, Samples=X_train.shape[2], dropoutRate=dropoutRate, numFilters=8)
 
     adam_alpha = Adam()
     model.compile(loss='categorical_crossentropy', optimizer=adam_alpha, metrics = ['accuracy'])
@@ -192,46 +192,56 @@ def run(tbar=None, bench=''):
         kf = KFold(n_splits = N_FOLDS)
 
         with tqdm(desc=f'{N_FOLDS}-fold CV on {len(n_ch_list)} n_ch', total=len(n_ch_list), ascii=True) as bar1:
+
+            fstats = np.zeros((N_FOLDS, 4))
+
+            for split_ctr, (train, test) in enumerate(kf.split(X_orig, y_cat)):
+
+                if REDUCE_NETW or REDUCE_MANUAL:
+                    # check if the baseline model with all the channels
+                    # is already trained.
+                    if os.path.isfile(DATAFILE.format(f'model/{bench}', '', num_classes, 64, split_ctr, '.h5')):
+                        print('{} exists'.format(DATAFILE.format(f'model/{bench}', '', num_classes, 64, split_ctr, '.h5')))
+                        pass
+                    
+                    else:
+                        print('{} does not exist'.format(DATAFILE.format(f'model/{bench}', '', num_classes, 64, split_ctr, '.h5')))
+                        print("Channel reduction. Prepare the baseline model with full number of channels, i.e. 64. X[train].shape {}".format(X_orig[train].shape))
+
+                        model, history = train_validate(X_orig[train], y_cat[train],
+                                                        X_orig[test], y_cat[test],
+                                                        n_classes=num_classes, n_channels=64,
+                                                        dropoutRate=0.2)
+
+                        # if BENCHMARK:
+
+                        #     np.savez(DATAFILE.format(f'stats/bench{bench}', num_classes, 64,
+                        #                              split_ctr, '.npz'), **history.history)
+                        #     model.save(DATAFILE.format(f'model/bench{bench}', num_classes, 64, split_ctr, '.h5'))
+                        # else:
+                        np.savez(DATAFILE.format(f'stats/{bench}', '', num_classes, 64,
+                                                 split_ctr, '.npz'), **history.history)
+                        model.save(DATAFILE.format(f'model/{bench}', '', num_classes, 64, split_ctr, '.h5'))
+
+
+                        fstats = loadfstats(fstats, history.history, split_ctr)
+                        # save full model stats to the last index
+                        stats[i, len(n_ch_list), :] = fstats
+                        #print(stats[i, len(n_ch_list)])
+
+                        #Clear Models
+                        K.clear_session()
+
+                    #bar.update()
+                    if tbar is not None:
+                        tbar.update()
+
+
             for j, n_ch in enumerate(n_ch_list):
+
                 fstats = np.zeros((N_FOLDS, 4))
                 #with tqdm(desc=f'{N_FOLDS} fold cross validation', total=N_FOLDS, ascii=True) as bar:
                 for split_ctr, (train, test) in enumerate(kf.split(X_orig, y_cat)):
-
-                    if REDUCE_NETW or REDUCE_MANUAL:
-                        # check if the baseline model with all the channels
-                        # is already trained.
-                        if os.path.isfile(DATAFILE.format('model', '', num_classes, 64, split_ctr, '.h5')):
-                            #print('{} exists'.format(DATAFILE.format('model', num_classes, 64, split_ctr, '.h5')))
-                            pass
-
-                        else:
-                            #print("Channel reduction. Prepare the baseline model with full number of channels, i.e. 64")
-
-                            model, history = train_validate(X_orig[train], y_cat[train],
-                                                            X_orig[test], y_cat[test],
-                                                            n_classes=num_classes, n_channels=64)
-
-                            # if BENCHMARK:
-
-                            #     np.savez(DATAFILE.format(f'stats/bench{bench}', num_classes, 64,
-                            #                              split_ctr, '.npz'), **history.history)
-                            #     model.save(DATAFILE.format(f'model/bench{bench}', num_classes, 64, split_ctr, '.h5'))
-                            # else:
-                            np.savez(DATAFILE.format(f'stats/{bench}', '', num_classes, 64,
-                                                     split_ctr, '.npz'), **history.history)
-                            model.save(DATAFILE.format(f'model/{bench}', '', num_classes, 64, split_ctr, '.h5'))
-
-
-                            fstats = loadfstats(fstats, history.history, split_ctr)
-                            stats[i, len(n_ch_list), :] = fstats
-                            #print(stats[i, len(n_ch_list)])
-
-                            #Clear Models
-                            K.clear_session()
-
-                        #bar.update()
-                        if tbar is not None:
-                            tbar.update()
 
                     if REDUCE_NETW:
                         X = net_weights_channel_selection(X_orig, n_ch=n_ch, net_path=DATAFILE.format(f'model/{bench}', '', num_classes, 64, split_ctr, '.h5'), modelname=TOPOLOGY, do_normalize=do_normalize)
@@ -249,8 +259,10 @@ def run(tbar=None, bench=''):
                         warnings.warn('the desired number of n_ch is not available for this configuration. Check eeg_reduction.py for available configurations')
                         break
 
+                    print('training for n_ch {}, Xtrain.shape {}'.format(n_ch, X[train].shape))
                     model, history = train_validate(X[train], y_cat[train], X[test], y_cat[test],
-                                                        n_classes=num_classes, n_channels=n_ch)
+                                                    n_classes=num_classes, n_channels=n_ch,
+                                                    dropoutRate=0.2)
 
                     np.savez(DATAFILE.format(f'stats/{bench}', RMODE, num_classes, n_ch, split_ctr, '.npz'),
                              **history.history)
@@ -311,8 +323,8 @@ if __name__ == '__main__':
                 #                 #64, split_ctr, '.h5')))
                 #                 os.makedirs(os.path.join(EXP_FOLDER, f'model/bench{-1}'), exist_ok=True)
                 #                 os.system('mv {} {}'.format(DATAFILE.format('model', num_classes, 64, split_ctr, '.h5'), DATAFILE.format(f'model/bench{b-1}', num_classes, 64, split_ctr, '.h5')))
-                with open(os.devnull, 'w') as devnull, redirect_stderr(devnull), redirect_stdout(devnull):
-                    bstats[b] = run(tbar=bar, bench=b)
+                #with open(os.devnull, 'w') as devnull, redirect_stderr(devnull), redirect_stdout(devnull):
+                bstats[b] = run(tbar=bar, bench=b)
 
                 # in order to not lose the benchmarks, save every time it
                 # finishes a run

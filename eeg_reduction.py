@@ -29,6 +29,10 @@ from numpy import linalg as la
 import pdb
 from sklearn.preprocessing import minmax_scale, scale, normalize
 
+#from models import TimeDropout2D
+import models as models
+
+
 def get_channels(x, n_ch=64, rows='dist'):
 
     channels = None
@@ -87,6 +91,43 @@ def get_channels(x, n_ch=64, rows='dist'):
             channels = np.array([40,7,8,9,10,11,12,13,41,44,14,15,16,17,18,19,20,45]) # T7,C5, C3, C1, CZ, C2, C4, C6,T8// TP7, CP5, CP3, CP1, CPZ, CP2, CP4, CP6, TP8
         elif n_ch == 20:
             channels = np.array([42,40,7,8,9,10,11,12,13,41,43,44,14,15,16,17,18,19,20,45])# T9,T7,C5,C3,C1,CZ,C2,C4,C6,T8,T10// TP7, CP5, CP3, CP1, CPZ, CP2, CP4, CP6, TP8
+    elif rows.lower() == 'auto':
+        channels=None
+
+    return channels
+
+
+def get_channels_bci(x, n_ch=22, rows='dist'):
+
+    channels = None
+
+    if x.shape[1] == n_ch:
+        channels = np.arange(0,n_ch)
+
+    # distributed over the head
+    elif rows == 'dist':
+        raise ValueError("ValueError no dist configuration for bci comp iv 2a dataset")
+
+    # headset configuration with channels over sensorimotor area
+    elif rows.lower() == 'crow':
+        if n_ch == 2: 
+            channels = np.array([7,11]) # C3, C4
+        elif n_ch == 3: 
+            channels = np.array([7,9,11]) # C3, CZ, C4
+        elif n_ch == 5:
+            channels = np.array([6,7,9,11,12]) # C5, C3, CZ, C4, C6
+        elif n_ch == 7:
+            channels = np.array([6,7,8,9,10,11,12]) # C5, C3, C1, CZ, C2, C4, C6
+    elif rows.lower() == 'ccfrows':
+        if n_ch ==4: 
+            channels = np.array([7,11,1,5]) # C3, C4 // FC3, FC4
+        elif n_ch == 6:
+            channels = np.array([7,9,11,1,3,5]) # C3, CZ, C4, // FC3, FCZ, FC4
+    elif rows.lower() == 'ccprows':
+        if n_ch ==4: 
+            channels = np.array([7,11,13,17]) # C3, C4 // CP3, CP4
+        elif n_ch == 6:
+            channels = np.array([7,9,11,13,15,17]) # C3, CZ, C4, // CP3, CPZ, CP4
     elif rows.lower() == 'auto':
         channels=None
 
@@ -158,7 +199,8 @@ def net_weights_channel_selection(X, n_ch = 64, net_path='./results/your-global-
     if n_ch == 64:
         return X
 
-    model = load_model(net_path)
+    #model = load_model(net_path)
+    model = load_model(net_path, custom_objects={'TimeDropout2D':models.TimeDropout2D})
     #print(X.shape) # (8820, 64, 480, 1)
 
     # for layer in model.layers:
@@ -199,6 +241,74 @@ def net_weights_channel_selection(X, n_ch = 64, net_path='./results/your-global-
     #print(X_red.shape) # (8820, 38, 480, 1)
 
     return X_red
+
+
+def net_weights_channel_selection_bci(X, n_ch = 64, net_path='./results/your-global-experiment/model/global_class_4_ds1_nch64_T3_split_0.h5', modelname='EEGNet', do_normalize=False):
+    '''
+    Inputs
+    ------
+    X : np array ()
+        input array
+    n_ch: int
+        number of channels
+    net_path: string array
+        path to the network from which to get the weights
+    modelname: string array
+        EEGNet or edgeEEGNet
+
+    Outputs
+    -------
+    X_red: np array
+        np array to be given as input to the network with n_ch channels with highest L2 norm of the weights of the spatial convolution
+
+    '''
+
+    if X.shape[0] == n_ch:
+        print(X.shape[0])
+        return X
+
+    model = load_model(net_path, custom_objects={'TimeDropout2D':models.TimeDropout2D})
+    #print(X.shape) # (8820, 64, 480, 1)
+
+    # for layer in model.layers:
+    #     try:
+    #         print(layer, layer.get_weights()[0].shape)
+    #     except:
+    #         print(layer, layer.get_weights())
+    if modelname.lower()=='eegnet':
+        w = model.layers[3].get_weights()[0]
+    elif modelname.lower()=='edgeeegnet':
+        w = model.layers[1].get_weights()[0]
+    #print(w.shape) # (64, 1, 8, 2) for EEGNet, (64, 1, 1, 16) for edgeEEGNet
+    if do_normalize=='minmax':
+        print("do_normalize minmax")
+        for i in range(w.shape[2]):
+            for j in range(w.shape[3]):
+                w[:, 0, i, j] = minmax_scale(w[:, 0, i, j])
+                #print("shape ", w[:, 0, i, j].shape, w[:, 0, i, j], minmax_scale(w[:, 0, i, j]), w[:, 0, i, j].min(), w[:, 0, i, j].max())
+    if do_normalize=='univar':
+        print("do_normalize mean 0 univariance")
+        # Warning: the standard deviation
+        # of the data is probably bery close to 0!
+        for i in range(w.shape[2]):
+            for j in range(w.shape[3]):
+                w[:, 0, i, j] = scale(w[:, 0, i, j])
+    if do_normalize=='unitnorm':
+        print("do_normalize unitnorm")
+        for i in range(w.shape[2]):
+            for j in range(w.shape[3]):
+                w[:, :, i, j] = normalize(w[:, :, i, j], axis=0)
+                #print("shape ", w[:, :, i, j].shape, w[:, :, i, j].flatten(), normalize(w[:, :, i, j], axis=0).flatten(), w[:, :, i, j].min(), w[:, :, i, j].max())
+    wl2 = la.norm(w, axis=(2,3))
+    #print(wl2.shape) # (64, 1)
+    sort_i = np.argsort(wl2, axis=0)[::-1][:,0]
+    channels = sort_i[:n_ch]
+    #print(channels, channels.shape) # (38)
+    X_red = X[:,channels]
+    #print(X_red.shape) # (8820, 38, 480, 1)
+
+    return X_red
+
 
 
 def net_weights_channel_selection_folds_avg(X, n_ch = 64, num_splits=5, net_path='./results/your-global-experiment/model/global_class_4_ds1_nch64_T3_split_0.h5', modelname='EEGNet'):

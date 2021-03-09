@@ -347,6 +347,19 @@ def get_data_bci(subject, training, path, do_filter=False, n_classes=4):
                 n_valid_trials += 1
 
     data_return = data_return[0:n_valid_trials, :, :]
-    data_return = _use_time_window_post_cue(data_return)
+    data_return = _use_time_window_post_cue(data_return, t1_factor=2, t2_factor=5)
+    class_return = class_return[0:n_valid_trials]-1
 
-    return data_return, class_return[0:n_valid_trials]-1
+    if n_classes == 2:
+        del_feet = np.where(class_return==2)
+        class_return = np.delete(class_return, del_feet, axis=0)
+        data_return = np.delete(data_return, del_feet, axis=0)
+        del_tongue = np.where(class_return==3)
+        class_return = np.delete(class_return, del_tongue, axis=0)
+        data_return = np.delete(data_return, del_tongue, axis=0)
+    if n_classes == 3:
+        del_tongue = np.where(class_return==3)
+        class_return = np.delete(class_return, del_tongue, axis=0)
+        data_return = np.delete(data_return, del_tongue, axis=0)
+    
+    return data_return, class_return

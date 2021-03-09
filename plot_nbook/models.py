@@ -402,15 +402,11 @@ def edgeEEGNetCF1_conc(nb_classes, Chans=64, Samples=128, regRate=.25,
 
 def cubeEEGNet(nb_classes, Chans=64, Samples=128, regRate=.25,
                dropoutRate=0.1, kernLength=128,poolLength=8,
-               numFilters=8, dropoutType='Dropout', activation='relu', spatFilters=None):
+               numFilters=8, dropoutType='Dropout', activation='relu'):
 
     F1 = numFilters
     D = 2
-    if spatFilters is None:
-        F2= numFilters*2
-    else:
-        F2 = spatFilters
-
+    F2= numFilters*2
     if dropoutType.lower() == 'spatialdropout2d':
         dropoutType = SpatialDropout2D
     elif dropoutType.lower() == 'dropout':
@@ -459,7 +455,7 @@ def cubeEEGNet(nb_classes, Chans=64, Samples=128, regRate=.25,
 
 def cubeedgeEEGNetCF1(nb_classes, Chans=64, Samples=128, regRate=.25,
                dropoutRate=0.1, kernLength=128,poolLength=8,
-                      numFilters=8, dropoutType='Dropout', spatFilters=None):
+               numFilters=8, dropoutType='Dropout'):
     """
 
     Requires Tensorflow >= 1.5 and Keras >= 2.1.3
@@ -485,13 +481,9 @@ def cubeedgeEEGNetCF1(nb_classes, Chans=64, Samples=128, regRate=.25,
     across tasks.
 
     """
-    F1 = numFilters
+    F1 = numFilters*2
     D = 1
-    if spatFilters is None:
-        F2= numFilters
-    else:
-        F2 = spatFilters
-
+    F2= numFilters*2
     if dropoutType.lower() == 'spatialdropout2d':
         dropoutType = SpatialDropout2D
     elif dropoutType.lower() == 'dropout':
