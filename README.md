@@ -1,14 +1,19 @@
-# q-eegnet
-This repository contains the development of Q-EEGNet from training to quantization and finally to the implementation on Mr. Wolf.
+# MI-BMInet
+This repository contains the development of MI-BMInet (previously named edgeEEGNet) from training to quantization and finally to the implementation on Mr. Wolf and Vega (master branch), and the channel selection methods (ch_sel branch).
 
-This project was developed by Tibor Schneider during his Semester thesis at ETH Zurich under the supervision of Xiaying Wang, Michael Hersche, and Lukas Cavigelli.
+For more details, please read the paper *MI-BMInet: An Efficient Convolutional Neural Network for Motor Imagery Brain–Machine Interfaces With EEG Channel Selection* available on [arXiv](https://arxiv.org/abs/2203.14592) and on [IEEEXplore](https://ieeexplore.ieee.org/document/10409134). If you find this work useful in your research, please cite
+```
+@ARTICLE{mibminet,
+  author={Wang, Xiaying and Hersche, Michael and Magno, Michele and Benini, Luca},
+  journal={IEEE Sensors Journal}, 
+  title={MI-BMInet: An Efficient Convolutional Neural Network for Motor Imagery Brain–Machine Interfaces With EEG Channel Selection}, 
+  year={2024},
+  volume={24},
+  number={6},
+  pages={8835-8847},
+  doi={10.1109/JSEN.2024.3353146}}
+```
 
-For more details, please read the paper *Q-EEGNet: an Energy-Efficient 8-bit Quantized Parallel EEGNet Implementation for Edge Motor-Imagery Brain--Machine Interfaces* available on [arXiv](https://arxiv.org/abs/2004.11690). If you find this work useful in your research, please cite
-```
-@inproceedings{q-eegnet,
-	title = {Q-{EEGNet}: an {Energy}-{Efficient} 8-bit {Quantized} {Parallel} {EEGNet} {Implementation} for {Edge} {Motor}-{Imagery} {Brain}--{Machine} {Interfaces}},
-  booktitle = {arXiv preprint arXiv:2004.11690},
-	author = {Schneider, Tibor and Wang, Xiaying and Hersche, Michael and Cavigelli, Lukas and Benini, Luca},
-	year = {2020}
-}	
-```
+For an easier usage, you can directly take the model from `MI-BMInet/QuantLab/quantlab/BCI-CompIV-2a/edgeEEGNet/edgeEEGnetbaseline.py` or from `MI-BMInet/QuantLab/quantlab/PhysionetMMMI/edgeEEGNet/edgeEEGnetbaseline.py` (MI-BMInet was previously named edgeEEGNet).
+
+
