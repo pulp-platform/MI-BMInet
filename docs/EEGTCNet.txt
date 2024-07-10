@@ -1,0 +1,64 @@
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+     STEActivation-1          [-1, 1, 22, 1125]               0
+         ZeroPad2d-2          [-1, 1, 22, 1188]               0
+         INQConv2d-3          [-1, 8, 22, 1125]             512
+       BatchNorm2d-4          [-1, 8, 22, 1125]              16
+     STEActivation-5          [-1, 8, 22, 1125]               0
+         INQConv2d-6          [-1, 16, 1, 1125]             352
+       BatchNorm2d-7          [-1, 16, 1, 1125]              32
+              ReLU-8          [-1, 16, 1, 1125]               0
+         AvgPool2d-9           [-1, 16, 1, 140]               0
+    STEActivation-10           [-1, 16, 1, 140]               0
+          Dropout-11           [-1, 16, 1, 140]               0
+        ZeroPad2d-12           [-1, 16, 1, 155]               0
+        INQConv2d-13           [-1, 16, 1, 140]             256
+    STEActivation-14           [-1, 16, 1, 140]               0
+        INQConv2d-15           [-1, 16, 1, 140]             256
+      BatchNorm2d-16           [-1, 16, 1, 140]              32
+             ReLU-17           [-1, 16, 1, 140]               0
+        AvgPool2d-18            [-1, 16, 1, 17]               0
+    STEActivation-19            [-1, 16, 1, 17]               0
+    TimeDropout2d-20            [-1, 16, 1, 17]               0
+           Conv1d-21               [-1, 17, 17]             289
+    STEActivation-22               [-1, 17, 17]               0
+    ConstantPad1d-23               [-1, 17, 20]               0
+           Conv1d-24               [-1, 17, 17]              85
+      BatchNorm1d-25               [-1, 17, 17]              34
+              ELU-26               [-1, 17, 17]               0
+    STEActivation-27               [-1, 17, 17]               0
+          Dropout-28               [-1, 17, 17]               0
+    ConstantPad1d-29               [-1, 17, 20]               0
+           Conv1d-30               [-1, 17, 17]              85
+      BatchNorm1d-31               [-1, 17, 17]              34
+              ELU-32               [-1, 17, 17]               0
+    STEActivation-33               [-1, 17, 17]               0
+          Dropout-34               [-1, 17, 17]               0
+              ELU-35               [-1, 17, 17]               0
+    ConstantPad1d-36               [-1, 17, 23]               0
+           Conv1d-37               [-1, 17, 17]              85
+      BatchNorm1d-38               [-1, 17, 17]              34
+              ELU-39               [-1, 17, 17]               0
+    STEActivation-40               [-1, 17, 17]               0
+          Dropout-41               [-1, 17, 17]               0
+    ConstantPad1d-42               [-1, 17, 23]               0
+           Conv1d-43               [-1, 17, 17]              85
+      BatchNorm1d-44               [-1, 17, 17]              34
+              ELU-45               [-1, 17, 17]               0
+    STEActivation-46               [-1, 17, 17]               0
+          Dropout-47               [-1, 17, 17]               0
+              ELU-48               [-1, 17, 17]               0
+          Flatten-49                  [-1, 289]               0
+        INQLinear-50                    [-1, 4]           1,160
+    STEActivation-51                    [-1, 4]               0
+================================================================
+Total params: 3,381
+Trainable params: 3,381
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.09
+Forward/backward pass size (MB): 5.56
+Params size (MB): 0.01
+Estimated Total Size (MB): 5.67
+----------------------------------------------------------------

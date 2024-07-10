@@ -1,0 +1,52 @@
+{
+  "description": "",
+  "indiv": {
+    "net": {
+      "class": "edgeEEGNetBaseline",
+      "params": {
+        "F1": 16,
+        "D": 1,
+        "F2": 16,
+        "C": 64,
+        "T": 480,
+        "N": 4,
+        "p_dropout": 0.2,
+        "activation": "relu",
+        "dropout_type": "TimeDropout2D"
+      },
+      "pretrained": null
+    },
+    "loss_function": {
+      "class": "CrossEntropyLoss",
+      "params": {}
+    }
+  },
+  "treat": {
+    "thermostat": {
+      "params": {
+        "noise_schemes": {},
+        "bindings": []
+      }
+    },
+    "optimizer": {
+      "class": "Adam",
+      "params": {"lr": 1e-4}
+    },
+    "lr_scheduler": {
+        "class": "StepLR",
+        "params": {"step_size": 1000, "gamma": 1}
+    },
+    "data": {
+      "num_classes": 4,
+      "valid_fraction": 0.2,
+      "test_fraction": 0,
+      "bs_train": 16,
+      "bs_valid": 16
+    },
+    "max_epoch": 200
+  },
+  "protocol": {
+    "update_metric": "valid_metric",
+    "metric_period": 1
+  }
+}

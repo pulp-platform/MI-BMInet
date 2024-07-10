@@ -1,0 +1,93 @@
+{
+  "description": "",
+  "indiv": {
+    "net": {
+      "class": "edgeEEGNet",
+      "params": {
+        "F1": 8,
+        "D": 2,
+        "F2": 16,
+        "C": 22,
+        "T": 1125,
+        "N": 4,
+        "p_dropout": 0.5,
+        "dropout_type": "TimeDropout2D",
+        "quantWeight": true,
+        "weightInqSchedule": {
+          "1": 0,
+          "30": 0.2,
+          "50": 0.4,
+          "70": 0.6,
+          "90": 0.8,
+          "110": 0.875,
+          "120": 0.9375,
+          "130": 0.96875,
+          "140": 0.984375,
+          "150": 1
+        },
+        "weightInqNumLevels": 255,
+        "weightInqStrategy": "magnitude",
+        "weightInqInitMethod": "uniform",
+        "quantAct": true,
+        "actSTENumLevels": 255,
+        "actSTEStartEpoch": 2
+      },
+      "pretrained": {
+        "file": "/scratch/sem19h24/QuantLab/BCI-CompIV-2a/logs/exp901/saves/epoch0500.ckpt",
+        "parameters": [
+          "conv1.weight",
+          "batch_norm1",
+          "conv2.weight",
+          "batch_norm2",
+          "sep_conv1.weight",
+          "sep_conv2.weight",
+          "batch_norm3",
+          "fc.weight",
+          "fc.bias"
+        ]
+      }
+    },
+    "loss_function": {
+      "class": "CrossEntropyLoss",
+      "params": {}
+    }
+  },
+  "treat": {
+    "thermostat": {
+      "params": {
+        "noise_schemes": {},
+        "bindings": []
+      }
+    },
+    "optimizer": {
+      "class": "Adam",
+      "params": {"lr": 1e-4}
+    },
+    "lr_scheduler": {
+        "class": "StepLR",
+        "params": {"step_size": 1000, "gamma": 1}
+    },
+    "data": {
+      "subject": 1,
+      "fs": 250,
+      "t1_factor": 1.5,
+      "t2_factor": 6.0,
+      "filter": {
+        "type": "none",
+        "order": 4,
+        "fc": 4.0,
+        "fc_low": 4.0,
+        "fc_high": 40.0
+      },
+      "valid_fraction": 0.1,
+      "use_test_as_valid": true,
+      "bs_train": 32,
+      "bs_valid": 32
+    },
+    "max_epoch": 160
+  },
+  "protocol": {
+    "update_metric": "valid_metric",
+    "metric_period": 1
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "description": "randomDescription",
+  "indiv": {
+    "net": {
+        "class": "VGG",
+        "params": {
+        "quantAct": true, 
+        "quantActSTENumLevels": 4, 
+        "quantWeights": true,
+        "quantSkipFirstLayer": true,
+        "quantSkipLastLayer": true,
+        "weightInqBits": 1, 
+        "weightInqStrategy": "magnitude-SRQ", 
+        "stepEveryEpoch": true,
+        "weightInit": null,
+        "weightInqSchedule": {
+        }
+      },
+      "pretrained": null
+    },
+    "loss_function": {
+      "class": "CrossEntropyLoss",
+      "params": {}
+    }
+  },
+  "treat": {
+    "thermostat": {
+      "params": {
+        "noise_schemes": {},
+        "bindings": []
+      }
+    },
+    "optimizer": {
+      "class": "Adam",
+      "params": {"lr": 1e-3}
+    },
+    "lr_scheduler": {
+        "class": "HandScheduler",
+        "params": {
+          "schedule": {
+            "150": 0.1,
+            "180": 1.0,
+            "210": 0.1,
+            "240": 0.01
+          }
+        }
+    },
+    "data": {
+      "augment": true,
+      "valid_fraction": 0.0,
+      "useTestForVal": true,
+      "bs_train": 512,
+      "bs_valid": 256
+    },
+    "max_epoch": 400
+  },
+  "protocol": {
+    "update_metric": "valid_metric",
+    "metric_period": 1
+  }
+}

@@ -1,0 +1,122 @@
+Subject 1: quantized accuracy: 0.8149                 
+Subject 2: quantized accuracy: 0.5265                 
+Subject 3: quantized accuracy: 0.8681                 
+Subject 4: quantized accuracy: 0.5526                 
+Subject 5: quantized accuracy: 0.6703                 
+Subject 6: quantized accuracy: 0.4977                 
+Subject 7: quantized accuracy: 0.8375                 
+Subject 8: quantized accuracy: 0.8229                 
+Subject 9: quantized accuracy: 0.8220                 
+Average quantized accuracy = 0.7125076843181846
+
+Subject 1: quantized accuracy: 0.7758                 
+Subject 2: quantized accuracy: 0.5442                 
+Subject 3: quantized accuracy: 0.9194                 
+Subject 4: quantized accuracy: 0.6009                 
+Subject 5: quantized accuracy: 0.6630                 
+Subject 6: quantized accuracy: 0.4837                 
+Subject 7: quantized accuracy: 0.7653                 
+Subject 8: quantized accuracy: 0.8044                 
+Subject 9: quantized accuracy: 0.7348                 
+Average quantized accuracy = 0.6990717037065257
+
+Subject 1: quantized accuracy: 0.8007                 
+Subject 2: quantized accuracy: 0.6184                 
+Subject 3: quantized accuracy: 0.9377                 
+Subject 4: quantized accuracy: 0.6009                 
+Subject 5: quantized accuracy: 0.6449                 
+Subject 6: quantized accuracy: 0.5395                 
+Subject 7: quantized accuracy: 0.7906                 
+Subject 8: quantized accuracy: 0.7934                 
+Subject 9: quantized accuracy: 0.8068                 
+Average quantized accuracy = 0.725882742949934
+
+Subject 1: quantized accuracy: 0.7865                 
+Subject 2: quantized accuracy: 0.5371                 
+Subject 3: quantized accuracy: 0.8828                 
+Subject 4: quantized accuracy: 0.5833                 
+Subject 5: quantized accuracy: 0.7029                 
+Subject 6: quantized accuracy: 0.5907                 
+Subject 7: quantized accuracy: 0.8159                 
+Subject 8: quantized accuracy: 0.8339                 
+Subject 9: quantized accuracy: 0.7538                 
+Average quantized accuracy = 0.7207681642101849
+
+Subject 1: quantized accuracy: 0.8434                 
+Subject 2: quantized accuracy: 0.5830                 
+Subject 3: quantized accuracy: 0.8901                 
+Subject 4: quantized accuracy: 0.5702                 
+Subject 5: quantized accuracy: 0.7138                 
+Subject 6: quantized accuracy: 0.5302                 
+Subject 7: quantized accuracy: 0.7870                 
+Subject 8: quantized accuracy: 0.7970                 
+Subject 9: quantized accuracy: 0.7765                 
+Average quantized accuracy = 0.7212564415839796
+
+Subject 1: quantized accuracy: 0.8221                 
+Subject 2: quantized accuracy: 0.4912                 
+Subject 3: quantized accuracy: 0.8791                 
+Subject 4: quantized accuracy: 0.6491                 
+Subject 5: quantized accuracy: 0.6703                 
+Subject 6: quantized accuracy: 0.6186                 
+Subject 7: quantized accuracy: 0.6787                 
+Subject 8: quantized accuracy: 0.7638                 
+Subject 9: quantized accuracy: 0.8182                 
+Average quantized accuracy = 0.7101209049578585
+
+Subject 1: quantized accuracy: 0.7900                 
+Subject 2: quantized accuracy: 0.5159                 
+Subject 3: quantized accuracy: 0.8901                 
+Subject 4: quantized accuracy: 0.6272                 
+Subject 5: quantized accuracy: 0.7138                 
+Subject 6: quantized accuracy: 0.5349                 
+Subject 7: quantized accuracy: 0.7942                 
+Subject 8: quantized accuracy: 0.8229                 
+Subject 9: quantized accuracy: 0.7917                 
+Average quantized accuracy = 0.7200733420957035
+
+Subject 1: quantized accuracy: 0.8363                 
+Subject 2: quantized accuracy: 0.4806                 
+Subject 3: quantized accuracy: 0.9048                 
+Subject 4: quantized accuracy: 0.6316                 
+Subject 5: quantized accuracy: 0.7029                 
+Subject 6: quantized accuracy: 0.5535                 
+Subject 7: quantized accuracy: 0.7726                 
+Subject 8: quantized accuracy: 0.8303                 
+Subject 9: quantized accuracy: 0.7917                 
+Average quantized accuracy = 0.7226755805002294
+
+Subject 1: quantized accuracy: 0.8470                 
+Subject 2: quantized accuracy: 0.5371                 
+Subject 3: quantized accuracy: 0.9231                 
+Subject 4: quantized accuracy: 0.6140                 
+Subject 5: quantized accuracy: 0.6739                 
+Subject 6: quantized accuracy: 0.4930                 
+Subject 7: quantized accuracy: 0.7184                 
+Subject 8: quantized accuracy: 0.8413                 
+Subject 9: quantized accuracy: 0.8258                 
+Average quantized accuracy = 0.7192914904381023
+
+Subject 1: quantized accuracy: 0.8256                 
+Subject 2: quantized accuracy: 0.5795                 
+Subject 3: quantized accuracy: 0.9121                 
+Subject 4: quantized accuracy: 0.5614                 
+Subject 5: quantized accuracy: 0.6522                 
+Subject 6: quantized accuracy: 0.5535                 
+Subject 7: quantized accuracy: 0.6968                 
+Subject 8: quantized accuracy: 0.8192                 
+Subject 9: quantized accuracy: 0.7462                 
+Average quantized accuracy = 0.7051592219746143
+
+
+Total Average Accuracy: 0.7157 +- 0.0314
+
+subject 1: quantized model = 0.8142 +- 0.023
+subject 2: quantized model = 0.5413 +- 0.040
+subject 3: quantized model = 0.9007 +- 0.021
+subject 4: quantized model = 0.5991 +- 0.030
+subject 5: quantized model = 0.6808 +- 0.024
+subject 6: quantized model = 0.5395 +- 0.040
+subject 7: quantized model = 0.7657 +- 0.049
+subject 8: quantized model = 0.8129 +- 0.022
+subject 9: quantized model = 0.7867 +- 0.0312

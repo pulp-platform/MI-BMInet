@@ -1,0 +1,5 @@
+.spyproject/
+__pycache__/
+.idea/
+export
+
