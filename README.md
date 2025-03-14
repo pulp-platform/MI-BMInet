@@ -17,3 +17,5 @@ For more details, please read the paper *MI-BMInet: An Efficient Convolutional N
 For an easier usage, you can directly take the model from `MI-BMInet/QuantLab/quantlab/BCI-CompIV-2a/edgeEEGNet/edgeEEGnetbaseline.py` or from `MI-BMInet/QuantLab/quantlab/PhysionetMMMI/edgeEEGNet/edgeEEGnetbaseline.py` (MI-BMInet was previously named edgeEEGNet).
 
 
+### Acknowledgements
+This work received support from Swiss National Science Foundation Project 207913 "TinyTrainer: On-chip Training for TinyML devices"
